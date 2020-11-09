@@ -1,7 +1,8 @@
 import { expect } from 'chai';
+import {describe} from "mocha";
 
-describe('testing test setup', function() {
-  it('ping', function() {
+describe('testing test setup', () => {
+  it('ping', () => {
     expect(true).to.be.true
   }); 
 });

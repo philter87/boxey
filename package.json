@@ -4,18 +4,27 @@
   "description": "Frontend framework",
   "main": "index.js",
   "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "mocha -r ts-node/register tests/**/*.test.ts"
   },
   "author": "Philip HC",
   "license": "ISC",
   "devDependencies": {
+    "@rollup/plugin-typescript": "^6.1.0",
     "@types/chai": "^4.2.14",
     "@types/mocha": "^8.0.3",
     "chai": "^4.2.0",
     "csstype": "^3.0.4",
     "mocha": "^8.2.0",
     "nyc": "^15.1.0",
+    "rollup": "^2.33.1",
+    "rollup-plugin-copy": "^3.3.0",
+    "rollup-plugin-copy-watch": "0.0.1",
+    "rollup-plugin-livereload": "^2.0.0",
+    "rollup-plugin-serve": "^1.1.0",
     "ts-node": "^9.0.0",
+    "tslib": "^2.0.3",
     "typescript": "^4.0.5"
   }
 }
