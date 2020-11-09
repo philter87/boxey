@@ -1,7 +1,13 @@
+import {Tap} from "./tap";
+import {tag} from "./elements";
 
+const message = new Tap("Hello World");
+const MESSAGE = message.to(v => v.toUpperCase());
 
 let el = document.createElement('div');
-el.innerText = "Hello World!!";
+el.innerText = "Hello World!!!";
 document.getElementById('app').appendChild(el)
-let counter = 0;
-//setInterval(() => el.innerText = (counter++)+"", 1000)
+
+MESSAGE.subscribe( val => el.innerText = val)
+
+console.log(tag("div"))

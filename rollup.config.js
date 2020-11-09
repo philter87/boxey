@@ -3,6 +3,7 @@ import typescript from '@rollup/plugin-typescript';
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
 import copy from 'rollup-plugin-copy'
+import { terser } from "rollup-plugin-terser";
 
 export const OUTPUT_FOLDER = 'dist';
 export default {
@@ -19,6 +20,7 @@ export default {
       typescript(),
       copy({targets: [{src:'static/index.html', dest: 'dist'}]}),
       serve(OUTPUT_FOLDER),
-      livereload(OUTPUT_FOLDER)
+      livereload(OUTPUT_FOLDER),
+      terser()
   ],
 };

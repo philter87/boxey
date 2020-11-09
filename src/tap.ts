@@ -10,7 +10,13 @@ interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Unsubscribe;
 }
 
-class ReadStore<T> implements Subscribable<T>{
+const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) => {
+    return new Drop<R>(subscriber => {
+        return source.subscribe( val => subscriber(mapperFunction(val)))
+    })
+}
+
+class Drop<T> implements Subscribable<T>{
     private _subscribe: (subscriber: Subscriber<T>) => Unsubscribe;
 
     constructor( subscribe: (subscriber: Subscriber<T>) => Unsubscribe) {
@@ -18,12 +24,15 @@ class ReadStore<T> implements Subscribable<T>{
     }
 
     subscribe(subscriber: Subscriber<T>): Unsubscribe {
-        return this._subscribe.apply(subscriber);
+        return this._subscribe(subscriber);
     }
 
+    to<R>(mapperFunction: (value: T) => R) {
+        return mapFunc(this, mapperFunction);
+    }
 }
 
-export class Store<T> implements Subscribable<T> {
+export class Tap<T> implements Subscribable<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 
@@ -40,21 +49,16 @@ export class Store<T> implements Subscribable<T> {
 
     set(value: T) {
         this.value = value;
-        this.subscribers.forEach(o => {
-            if (o) {
-                o(this.value)
-            }
-        });
+        this.subscribers.forEach(o => o && o(this.value));
     }
 
     update(updateFunction: (currentValue: T) => T) {
         this.set(updateFunction(this.value))
     }
 
-    // map<R>(mapperFunction: (value: T) => R) {
-    //     return new ReadStore<R>(subscriber => {
-    //         subscriber(prevValue => mapperFunction(prevValue));
-    //         return this.subscribe(subscriber);
-    //     })
-    // }
+    to<R>(mapperFunction: (value: T) => R) {
+        return mapFunc(this, mapperFunction);
+    }
 }
+
+

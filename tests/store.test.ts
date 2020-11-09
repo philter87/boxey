@@ -1,18 +1,18 @@
 import {assert, expect } from "chai";
 import {describe} from "mocha";
-import {Store} from "../src/store";
+import {Tap} from "../src/tap";
 
 
 describe('Store tests', () => {
     it('Initial value', () => {
         const expected = 'Hello';
-        const store = new Store(expected);
+        const store = new Tap(expected);
 
         store.subscribe(val => assert.equal(val, expected));
     })
     it('Set', () => {
         const expected = 'ValueIsSet';
-        const store = new Store('');
+        const store = new Tap('');
 
         store.set(expected);
 
@@ -20,7 +20,7 @@ describe('Store tests', () => {
     })
     it('Update', () => {
         const expected = 1 + 10;
-        const store = new Store(1);
+        const store = new Tap(1);
 
         store.update( val => val+10);
 
@@ -28,7 +28,7 @@ describe('Store tests', () => {
     })
     it('Set multiple times', () => {
         const values = [];
-        const store = new Store(0);
+        const store = new Tap(0);
         store.subscribe( val => {
             values.push(val);
         });
@@ -40,7 +40,7 @@ describe('Store tests', () => {
     })
     it('Unsubscribe', () => {
         const values = [];
-        const store = new Store(0);
+        const store = new Tap(0);
         const unsubscribe = store.subscribe( val => {
             values.push(val);
         });
@@ -51,10 +51,10 @@ describe('Store tests', () => {
 
         assert.deepEqual(values, [0, 1]);
     })
-    it('map', () => {
-        const store = new Store(0);
-        // const readStore = store.map( num => "count: " + num);
-        // readStore.subscribe( console.log);
+    it('to: operator', () => {
+        const expected = "count: 0";
+        const store = new Tap(0);
+        const readStore = store.to(num => "count: " + num);
+        readStore.subscribe( val => assert.equal(val, expected));
     })
-
 })
