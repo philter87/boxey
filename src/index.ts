@@ -1,7 +1,7 @@
-import {Tap} from "./tap";
-import {tag} from "./elements";
+import {Drop} from "./drop";
+import {a, button, div, tag} from "./elements";
 
-const message = new Tap("Hello World");
+const message = new Drop("Hello World");
 const MESSAGE = message.to(v => v.toUpperCase());
 
 let el = document.createElement('div');
@@ -10,4 +10,4 @@ document.getElementById('app').appendChild(el)
 
 MESSAGE.subscribe( val => el.innerText = val)
 
-console.log(tag("div"))
+console.log(tag("div"), div(), a(), button())

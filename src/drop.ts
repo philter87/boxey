@@ -11,12 +11,12 @@ interface Subscribable<T> {
 }
 
 const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) => {
-    return new Drop<R>(subscriber => {
+    return new ReadDrop<R>(subscriber => {
         return source.subscribe( val => subscriber(mapperFunction(val)))
     })
 }
 
-class Drop<T> implements Subscribable<T>{
+class ReadDrop<T> implements Subscribable<T>{
     private _subscribe: (subscriber: Subscriber<T>) => Unsubscribe;
 
     constructor( subscribe: (subscriber: Subscriber<T>) => Unsubscribe) {
@@ -32,7 +32,7 @@ class Drop<T> implements Subscribable<T>{
     }
 }
 
-export class Tap<T> implements Subscribable<T> {
+export class Drop<T> implements Subscribable<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 
@@ -44,7 +44,7 @@ export class Tap<T> implements Subscribable<T> {
     subscribe(subscriber: (value: T) => void): Unsubscribe {
         subscriber(this.value);
         const index = this.subscribers.push(subscriber);
-        return () => this.subscribers[index-1] = null;
+        return () => delete this.subscribers[index-1];
     }
 
     set(value: T) {
@@ -60,5 +60,3 @@ export class Tap<T> implements Subscribable<T> {
         return mapFunc(this, mapperFunction);
     }
 }
-
-
