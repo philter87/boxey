@@ -6,11 +6,14 @@ export interface Subscriber<T> {
     (value: T) : void;
 }
 export interface Get {
-    <T> (subscribable: Subscribable<T>) : T
+    <T> (drop: Drop<T>) : T
 }
 
 interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Unsubscribe;
+}
+export interface Drop<T> extends Subscribable<T>{
+    map<R>(mapperFunction: (value: T) => R);
 }
 
 const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) => {
@@ -19,7 +22,7 @@ const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) 
     })
 }
 
-class ReadDrop<T> implements Subscribable<T>{
+class ReadDrop<T> implements Drop<T>{
     private _subscribe: (subscriber: Subscriber<T>) => Unsubscribe;
 
     constructor( subscribe: (subscriber: Subscriber<T>) => Unsubscribe) {
@@ -35,7 +38,7 @@ class ReadDrop<T> implements Subscribable<T>{
     }
 }
 
-export const join = <R>(joinFunction: (get: Get) => R) => {
+export const join = <R>(join: (get: Get) => R): Drop<R> => {
     return new ReadDrop<R>(observer => {
         let areAllSubscribersInitialized = false;
         const values = [];
@@ -48,19 +51,22 @@ export const join = <R>(joinFunction: (get: Get) => R) => {
                     values[currentIndex] = val;
                     if(areAllSubscribersInitialized) {
                         index = 0;
-                        observer(joinFunction(get))
+                        observer(join(get))
                     }
                 });
             }
             return values[currentIndex];
         }
-        observer(joinFunction(get))
+        observer(join(get))
         areAllSubscribersInitialized = true;
         return () => unsubscribes.forEach( unsub => unsub());
     })
 }
+export const drop = <T>(defaultValue: T): WriteDrop<T> => {
+    return new WriteDrop(defaultValue);
+}
 
-export class Drop<T> implements Subscribable<T> {
+class WriteDrop<T> implements Drop<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 

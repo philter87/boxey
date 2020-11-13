@@ -1,4 +1,4 @@
-interface ElementAttr {
+export interface ElementAttr {
     style?: Partial<CSSStyleDeclaration>;
     class?: string;
     hidden?: boolean;

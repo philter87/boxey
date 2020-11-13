@@ -1,18 +1,18 @@
 import {assert } from "chai";
 import {describe} from "mocha";
-import {Drop, Get, join} from "../src/drop";
+import {join, drop} from "../src/drop";
 
 
 describe('Store tests', () => {
     it('Initial value', () => {
         const expected = 'Hello';
-        const store = new Drop(expected);
+        const store = drop(expected);
 
         store.subscribe(val => assert.equal(val, expected));
     })
     it('Set', () => {
         const expected = 'ValueIsSet';
-        const store = new Drop('');
+        const store = drop('');
 
         store.set(expected);
 
@@ -20,7 +20,7 @@ describe('Store tests', () => {
     })
     it('Update', () => {
         const expected = 1 + 10;
-        const store = new Drop(1);
+        const store = drop(1);
 
         store.update( val => val+10);
 
@@ -28,7 +28,7 @@ describe('Store tests', () => {
     })
     it('Set multiple times', () => {
         const values = [];
-        const store = new Drop(0);
+        const store = drop(0);
         store.subscribe( val => {
             values.push(val);
         });
@@ -40,7 +40,7 @@ describe('Store tests', () => {
     })
     it('Unsubscribe', () => {
         const values = [];
-        const store = new Drop(0);
+        const store = drop(0);
         const unsubscribe = store.subscribe( val => {
             values.push(val);
         });
@@ -53,13 +53,13 @@ describe('Store tests', () => {
     })
     it('map: operator', () => {
         const expected = "count: 0";
-        const store = new Drop(0);
+        const store = drop(0);
         const readStore = store.map(num => "count: " + num);
         readStore.subscribe( val => assert.equal(val, expected));
     })
     it('join operator', () => {
-        const source1 = new Drop(5);
-        const source2 = new Drop(5);
+        const source1 = drop(5);
+        const source2 = drop(5);
         const joined = join(get => get(source1) + get(source2));
         let actualValue;
 
@@ -73,18 +73,16 @@ describe('Store tests', () => {
     })
     it('join operator - unsubscribe', () => {
         const expected = 2;
-        const source1 = new Drop(1);
-        const source2 = new Drop(1);
+        const source1 = drop(1);
+        const source2 = drop(1);
         const joined = join(get => get(source1) + get(source2));
         let actualValue;
 
         const unsubscribe = joined.subscribe( val => actualValue = val);
-
-        assert.equal(actualValue, 2);
         unsubscribe()
         source1.set(10)
         source2.set(10)
 
-        assert.equal(actualValue, 2, "actualValue is still 2, because we unsubscribed before settings sourc1 and source2");
+        assert.equal(actualValue, expected, "actualValue is still 2, because we unsubscribed before settings source1 and source2 to 10");
     })
 })
