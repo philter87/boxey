@@ -5,6 +5,9 @@ export interface Unsubscribe {
 export interface Subscriber<T> {
     (value: T) : void;
 }
+export interface Get {
+    <T> (subscribable: Subscribable<T>) : T
+}
 
 interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Unsubscribe;
@@ -27,7 +30,7 @@ class ReadDrop<T> implements Subscribable<T>{
         return this._subscribe(subscriber);
     }
 
-    to<R>(mapperFunction: (value: T) => R) {
+    map<R>(mapperFunction: (value: T) => R) {
         return mapFunc(this, mapperFunction);
     }
 }
@@ -56,7 +59,46 @@ export class Drop<T> implements Subscribable<T> {
         this.set(updateFunction(this.value))
     }
 
-    to<R>(mapperFunction: (value: T) => R) {
+    map<R>(mapperFunction: (value: T) => R) {
         return mapFunc(this, mapperFunction);
+    }
+
+    join<R, Q>(mapperFunction: (value: T, get: Get) => R) {
+        return new ReadDrop<R>(observer => {
+            let isMapperCalledOnce = false;
+            const values = [];
+            const unsubscribes: Unsubscribe[] = [];
+
+            let index = 0;
+            const notifyObserver = () => {
+                index = 0;
+                observer(mapperFunction(values[0], get))
+            }
+
+            const get = <Q>(s: Subscribable<Q>) => {
+                const currentIndex = ++index;
+                if(!unsubscribes[currentIndex]){
+                    unsubscribes[currentIndex] = s.subscribe( val => {
+                        values[currentIndex] = val;
+                        if(isMapperCalledOnce) {
+                            notifyObserver()
+                        }
+                    });
+                }
+                return values[currentIndex];
+            }
+
+            unsubscribes[0] = this.subscribe(val => {
+                values[0] = val;
+                if(isMapperCalledOnce) {
+                    notifyObserver()
+                }
+            });
+            notifyObserver();
+            isMapperCalledOnce = true;
+            return () => {
+                unsubscribes.forEach( unsub => unsub());
+            };
+        })
     }
 }

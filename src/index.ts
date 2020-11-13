@@ -1,8 +1,9 @@
 import {Drop} from "./drop";
 import {a, button, div, tag} from "./elements";
 
+
 const message = new Drop("Hello World");
-const MESSAGE = message.to(v => v.toUpperCase());
+const MESSAGE = message.map(v => v.toUpperCase());
 
 let el = document.createElement('div');
 el.innerText = "Hello World!!!";
