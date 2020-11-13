@@ -1,6 +1,6 @@
 import {assert } from "chai";
 import {describe} from "mocha";
-import {Drop, Get} from "../src/drop";
+import {Drop, Get, join} from "../src/drop";
 
 
 describe('Store tests', () => {
@@ -89,6 +89,24 @@ describe('Store tests', () => {
         const source1 = new Drop(5);
         const source2 = new Drop(5);
         const joined = source1.join((val1, get: Get) => val1 + get(source2))
+        let actualValue;
+
+        joined.subscribe( val => actualValue = val);
+
+        assert.equal(actualValue, 10);
+        source1.set(10)
+        assert.equal(actualValue, 15);
+        source2.set(10)
+        assert.equal(actualValue, 20);
+        source2.set(20)
+        assert.equal(actualValue, 30);
+        source1.set(20)
+        assert.equal(actualValue, 40);
+    })
+    it('isolated join operator', () => {
+        const source1 = new Drop(5);
+        const source2 = new Drop(5);
+        const joined = join(get => get(source1) + get(source2));
         let actualValue;
 
         joined.subscribe( val => actualValue = val);

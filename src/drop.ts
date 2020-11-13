@@ -35,6 +35,40 @@ class ReadDrop<T> implements Subscribable<T>{
     }
 }
 
+export const join = <R>(joinFunction: (get: Get) => R) => {
+    return new ReadDrop<R>(observer => {
+        let isJoinFunctionCalledOnce = false;
+        const values = [];
+        const unsubscribes: Unsubscribe[] = [];
+
+        let index = 0;
+
+        const get = <Q>(s: Subscribable<Q>) => {
+            const currentIndex = index++;
+            if(!isJoinFunctionCalledOnce){
+                unsubscribes[currentIndex] = s.subscribe( val => {
+                    values[currentIndex] = val;
+                    if(isJoinFunctionCalledOnce) {
+                        notifyAboutNewValue()
+                    }
+                });
+            }
+            return values[currentIndex];
+        }
+
+        const notifyAboutNewValue = () => {
+            index = 0;
+            observer(joinFunction(get))
+        }
+
+        notifyAboutNewValue();
+        isJoinFunctionCalledOnce = true;
+        return () => {
+            unsubscribes.forEach( unsub => unsub());
+        };
+    })
+}
+
 export class Drop<T> implements Subscribable<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
@@ -63,7 +97,7 @@ export class Drop<T> implements Subscribable<T> {
         return mapFunc(this, mapperFunction);
     }
 
-    join<R, Q>(mapperFunction: (value: T, get: Get) => R) {
+    join<R>(mapperFunction: (value: T, get: Get) => R) {
         return new ReadDrop<R>(observer => {
             let isMapperCalledOnce = false;
             const values = [];
