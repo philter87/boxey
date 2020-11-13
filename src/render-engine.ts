@@ -1,10 +1,10 @@
-import {Tag} from "./elements";
+import {Node} from "./elements";
 
 export class RenderEngine {
-    private rootElement: Tag;
+    private rootElement: Node;
     private target: HTMLElement;
 
-    constructor(rootElement: Tag, target: HTMLElement) {
+    constructor(rootElement: Node, target: HTMLElement) {
         this.rootElement = rootElement;
         this.target = target;
     }
@@ -17,7 +17,7 @@ export class RenderEngine {
     }
 
 
-    private createDomElement(el: Tag) {
+    private createDomElement(el: Node) {
         const domEl = document.createElement(el.tag)
         if (el.children) {
             el.children.forEach( childEl => {

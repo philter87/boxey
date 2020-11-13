@@ -1,19 +1,19 @@
-export interface ElementAttr {
+export interface NodeAttributes {
     style?: Partial<CSSStyleDeclaration>;
     class?: string;
     hidden?: boolean;
 }
 
-export interface Tag {
+export interface Node {
     tag: string;
-    attr?: ElementAttr;
+    attr?: NodeAttributes;
     children?: Child[];
 }
 
-export type Child = Tag | string;
+export type Child = Node | string;
 
 
-export function tag(tagName: string, attributesOrChildren?: ElementAttr | Child[], children?: Child[]): Tag {
+export function node(tagName: string, attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
     if (Array.isArray(attributesOrChildren)) {
         return {tag: tagName, attr: undefined, children: attributesOrChildren};
     } else {
@@ -21,28 +21,28 @@ export function tag(tagName: string, attributesOrChildren?: ElementAttr | Child[
     }
 }
 
-export function div(): Tag;
-export function div(attributes: ElementAttr): Tag;
-export function div(children: Child[]): Tag;
-export function div(attributes: ElementAttr, children: Child[]): Tag;
-export function div(attributesOrChildren?: ElementAttr | Child[], children?: Child[]): Tag {
-    return tag('div', attributesOrChildren, children);
+export function div(): Node;
+export function div(attributes: NodeAttributes): Node;
+export function div(children: Child[]): Node;
+export function div(attributes: NodeAttributes, children: Child[]): Node;
+export function div(attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
+    return node('div', attributesOrChildren, children);
 }
 
-export function a(): Tag;
-export function a(attributes: ElementAttr): Tag;
-export function a(children: Child[]): Tag;
-export function a(attributes: ElementAttr, children: Child[]): Tag;
-export function a(attributesOrChildren?: ElementAttr | Child[], children?: Child[]): Tag {
-    return tag('a', attributesOrChildren, children);
+export function a(): Node;
+export function a(attributes: NodeAttributes): Node;
+export function a(children: Child[]): Node;
+export function a(attributes: NodeAttributes, children: Child[]): Node;
+export function a(attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
+    return node('a', attributesOrChildren, children);
 }
 
-export function button(): Tag;
-export function button(attributes: ElementAttr): Tag;
-export function button(children: Child[]): Tag;
-export function button(attributes: ElementAttr, children: Child[]): Tag;
-export function button(attributesOrChildren?: ElementAttr | Child[], children?: Child[]): Tag {
-    return tag('button', attributesOrChildren, children);
+export function button(): Node;
+export function button(attributes: NodeAttributes): Node;
+export function button(children: Child[]): Node;
+export function button(attributes: NodeAttributes, children: Child[]): Node;
+export function button(attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
+    return node('button', attributesOrChildren, children);
 }
 
 /*

@@ -1,5 +1,5 @@
 import {describe} from "mocha";
-import n from "../src/node";
+import n from "../src/node-test";
 
 describe('node', () => {
     it('', () => {

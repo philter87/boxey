@@ -1,8 +1,8 @@
-import {Child, ElementAttr, Tag} from "./elements";
+import {Child, NodeAttributes, Node} from "./elements";
 
 const tags = ['a', 'b', 'c'];
 
-export function node(tagName: string, attributesOrChildren?: ElementAttr | Child[], children?: Child[]): Tag {
+export function nodeTest(tagName: string, attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
     if (Array.isArray(attributesOrChildren)) {
         return {tag: tagName, attr: undefined, children: attributesOrChildren};
     } else {

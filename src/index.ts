@@ -1,5 +1,5 @@
 
-import {a, button, div, tag} from "./elements";
+import {a, button, div, node} from "./elements";
 import {drop} from "./drop";
 
 
@@ -12,4 +12,4 @@ document.getElementById('app').appendChild(el)
 
 MESSAGE.subscribe( val => el.innerText = val)
 
-console.log(tag("div"), div(), a(), button())
+console.log(node("div"), div(), a(), button())
