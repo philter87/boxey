@@ -37,35 +37,26 @@ class ReadDrop<T> implements Subscribable<T>{
 
 export const join = <R>(joinFunction: (get: Get) => R) => {
     return new ReadDrop<R>(observer => {
-        let isJoinFunctionCalledOnce = false;
+        let areAllSubscribersInitialized = false;
         const values = [];
         const unsubscribes: Unsubscribe[] = [];
-
         let index = 0;
-
         const get = <Q>(s: Subscribable<Q>) => {
             const currentIndex = index++;
-            if(!isJoinFunctionCalledOnce){
+            if(!areAllSubscribersInitialized){
                 unsubscribes[currentIndex] = s.subscribe( val => {
                     values[currentIndex] = val;
-                    if(isJoinFunctionCalledOnce) {
-                        notifyAboutNewValue()
+                    if(areAllSubscribersInitialized) {
+                        index = 0;
+                        observer(joinFunction(get))
                     }
                 });
             }
             return values[currentIndex];
         }
-
-        const notifyAboutNewValue = () => {
-            index = 0;
-            observer(joinFunction(get))
-        }
-
-        notifyAboutNewValue();
-        isJoinFunctionCalledOnce = true;
-        return () => {
-            unsubscribes.forEach( unsub => unsub());
-        };
+        observer(joinFunction(get))
+        areAllSubscribersInitialized = true;
+        return () => unsubscribes.forEach( unsub => unsub());
     })
 }
 
@@ -97,42 +88,4 @@ export class Drop<T> implements Subscribable<T> {
         return mapFunc(this, mapperFunction);
     }
 
-    join<R>(mapperFunction: (value: T, get: Get) => R) {
-        return new ReadDrop<R>(observer => {
-            let isMapperCalledOnce = false;
-            const values = [];
-            const unsubscribes: Unsubscribe[] = [];
-
-            let index = 0;
-            const notifyObserver = () => {
-                index = 0;
-                observer(mapperFunction(values[0], get))
-            }
-
-            const get = <Q>(s: Subscribable<Q>) => {
-                const currentIndex = ++index;
-                if(!unsubscribes[currentIndex]){
-                    unsubscribes[currentIndex] = s.subscribe( val => {
-                        values[currentIndex] = val;
-                        if(isMapperCalledOnce) {
-                            notifyObserver()
-                        }
-                    });
-                }
-                return values[currentIndex];
-            }
-
-            unsubscribes[0] = this.subscribe(val => {
-                values[0] = val;
-                if(isMapperCalledOnce) {
-                    notifyObserver()
-                }
-            });
-            notifyObserver();
-            isMapperCalledOnce = true;
-            return () => {
-                unsubscribes.forEach( unsub => unsub());
-            };
-        })
-    }
 }
