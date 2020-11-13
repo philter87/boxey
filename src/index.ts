@@ -1,5 +1,5 @@
 
-import {a, button, div, n} from "./node";
+import {a, button, div, n} from "./VNode";
 import {drop} from "./drop";
 
 

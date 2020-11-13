@@ -1,10 +1,10 @@
-import {Node} from "./node";
+import {VNode} from "./VNode";
 
 export class RenderEngine {
-    private rootElement: Node;
+    private rootElement: VNode;
     private target: HTMLElement;
 
-    constructor(rootElement: Node, target: HTMLElement) {
+    constructor(rootElement: VNode, target: HTMLElement) {
         this.rootElement = rootElement;
         this.target = target;
     }
@@ -17,7 +17,7 @@ export class RenderEngine {
     }
 
 
-    private createDomElement(el: Node) {
+    private createDomElement(el: VNode) {
         const domEl = document.createElement(el.tag)
         if (el.children) {
             el.children.forEach( childEl => {

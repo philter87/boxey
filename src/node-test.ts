@@ -1,8 +1,8 @@
-import {Child, NodeAttributes, Node} from "./node";
+import {Child, NodeAttributes, VNode} from "./VNode";
 
 const tags = ['a', 'b', 'c'];
 
-export function nodeTest(tagName: string, attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
+export function nodeTest(tagName: string, attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): VNode {
     if (Array.isArray(attributesOrChildren)) {
         return {tag: tagName, attr: undefined, children: attributesOrChildren};
     } else {
