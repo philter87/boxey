@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import {describe} from "mocha";
-import {a, div, node} from "../src/elements";
+import {a, div, n} from "../src/node";
 
 const DIV = 'div';
 const CLASS_NAME = 'aClass';
@@ -9,28 +9,28 @@ const CHILDREN = ['hello'];
 
 describe('tag', () => {
     it('tag: three parameters', () => {
-        const result = node(DIV, ATTRS, CHILDREN)
+        const result = n(DIV, ATTRS, CHILDREN)
 
         assert.equal(result.tag, DIV);
         assert.equal(result.attr.class, CLASS_NAME);
         assert.equal(result.children, CHILDREN);
     })
     it('tag: two parameters', () => {
-        const result = node(DIV, ATTRS)
+        const result = n(DIV, ATTRS)
 
         assert.equal(result.tag, DIV);
         assert.equal(result.attr.class, CLASS_NAME);
         assert.deepEqual(result.children, undefined);
     })
     it('tag: two parameters', () => {
-        const result = node(DIV, CHILDREN)
+        const result = n(DIV, CHILDREN)
 
         assert.equal(result.tag, DIV);
         assert.deepEqual(result.attr, undefined);
         assert.deepEqual(result.children, CHILDREN);
     })
     it('tag: one parameter', () => {
-        const result = node(DIV)
+        const result = n(DIV)
 
         assert.equal(result.tag, DIV);
         assert.deepEqual(result.attr, undefined);

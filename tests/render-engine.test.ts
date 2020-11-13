@@ -1,6 +1,6 @@
 import {describe} from "mocha";
 import {RenderEngine} from "../src/render-engine";
-import {div} from "../src/elements";
+import {div} from "../src/node";
 import { JSDOM } from 'jsdom'
 import { assert } from "chai";
 

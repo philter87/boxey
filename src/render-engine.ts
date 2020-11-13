@@ -1,4 +1,4 @@
-import {Node} from "./elements";
+import {Node} from "./node";
 
 export class RenderEngine {
     private rootElement: Node;

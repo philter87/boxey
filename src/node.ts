@@ -13,7 +13,7 @@ export interface Node {
 export type Child = Node | string;
 
 
-export function node(tagName: string, attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
+export function n(tagName: string, attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
     if (Array.isArray(attributesOrChildren)) {
         return {tag: tagName, attr: undefined, children: attributesOrChildren};
     } else {
@@ -26,7 +26,7 @@ export function div(attributes: NodeAttributes): Node;
 export function div(children: Child[]): Node;
 export function div(attributes: NodeAttributes, children: Child[]): Node;
 export function div(attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
-    return node('div', attributesOrChildren, children);
+    return n('div', attributesOrChildren, children);
 }
 
 export function a(): Node;
@@ -34,7 +34,7 @@ export function a(attributes: NodeAttributes): Node;
 export function a(children: Child[]): Node;
 export function a(attributes: NodeAttributes, children: Child[]): Node;
 export function a(attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
-    return node('a', attributesOrChildren, children);
+    return n('a', attributesOrChildren, children);
 }
 
 export function button(): Node;
@@ -42,7 +42,7 @@ export function button(attributes: NodeAttributes): Node;
 export function button(children: Child[]): Node;
 export function button(attributes: NodeAttributes, children: Child[]): Node;
 export function button(attributesOrChildren?: NodeAttributes | Child[], children?: Child[]): Node {
-    return node('button', attributesOrChildren, children);
+    return n('button', attributesOrChildren, children);
 }
 
 /*

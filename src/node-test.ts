@@ -1,4 +1,4 @@
-import {Child, NodeAttributes, Node} from "./elements";
+import {Child, NodeAttributes, Node} from "./node";
 
 const tags = ['a', 'b', 'c'];
 
