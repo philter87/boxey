@@ -83,6 +83,11 @@ describe('operators', () => {
         source1.pick("name").subscribe( val => actualValue = val);
         assert.equal(actualValue, name);
     })
+    it('snapshot', () => {
+        const name = 'Phil';
+        const source1 = drop(name);
+        assert.equal(name, source1.snapshot());
+    })
     it('join operator - unsubscribe', () => {
         const expected = 2;
         const source1 = drop(1);
