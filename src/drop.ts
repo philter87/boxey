@@ -12,8 +12,10 @@ export interface Get {
 interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Unsubscribe;
 }
+
 export interface Drop<T> extends Subscribable<T>{
     map<R>(mapperFunction: (value: T) => R);
+    pick(key: keyof T);
 }
 
 const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) => {
@@ -35,6 +37,10 @@ class ReadDrop<T> implements Drop<T>{
 
     map<R>(mapperFunction: (value: T) => R) {
         return mapFunc(this, mapperFunction);
+    }
+
+    pick(key: keyof T) {
+        return this.map(o => o[key]);
     }
 }
 
@@ -94,4 +100,7 @@ class WriteDrop<T> implements Drop<T> {
         return mapFunc(this, mapperFunction);
     }
 
+    pick(key: keyof T) {
+        return this.map(o => o[key]);
+    }
 }

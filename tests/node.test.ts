@@ -1,8 +1,7 @@
 import {describe} from "mocha";
-import n from "../src/node-test";
-
+import {div} from '../src/VNodes'
 describe('node', () => {
     it('', () => {
-        console.log(n.a)
+        console.log(div())
     })
 })

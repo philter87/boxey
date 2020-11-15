@@ -1,7 +1,7 @@
 
-import {a, button, div, n} from "./VNode";
 import {drop} from "./drop";
-
+import {a, button, div} from "./VNodes";
+import {n} from "./VNode";
 
 const message = drop("Hello World");
 const MESSAGE = message.map(v => v.toUpperCase());
@@ -12,4 +12,4 @@ document.getElementById('app').appendChild(el)
 
 MESSAGE.subscribe( val => el.innerText = val)
 
-console.log(n("div"), div(), a(), button())
+console.log(n('div'), div(), a(), button());

@@ -1,6 +1,7 @@
 import { assert } from "chai";
 import {describe} from "mocha";
-import {a, div, n, VNode} from "../src/VNode";
+import {n, VNode} from "../src/VNode";
+import {div, a} from "../src/VNodes"
 
 const DIV = 'div';
 const CLASS_NAME = 'aClass';

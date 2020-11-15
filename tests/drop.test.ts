@@ -51,13 +51,17 @@ describe('Store tests', () => {
 
         assert.deepEqual(values, [0, 1]);
     })
-    it('map: operator', () => {
+
+})
+
+describe('operators', () => {
+    it('map', () => {
         const expected = "count: 0";
         const store = drop(0);
         const readStore = store.map(num => "count: " + num);
         readStore.subscribe( val => assert.equal(val, expected));
     })
-    it('join operator', () => {
+    it('join', () => {
         const source1 = drop(5);
         const source2 = drop(5);
         const joined = join(get => get(source1) + get(source2));
@@ -70,6 +74,14 @@ describe('Store tests', () => {
         assert.equal(actualValue, 15);
         source2.set(10)
         assert.equal(actualValue, 20);
+    })
+    it('pick', () => {
+        const name = 'Phil';
+        const source1 = drop({name, age: '33'});
+
+        let actualValue;
+        source1.pick("name").subscribe( val => actualValue = val);
+        assert.equal(actualValue, name);
     })
     it('join operator - unsubscribe', () => {
         const expected = 2;
