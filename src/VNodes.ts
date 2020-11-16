@@ -1,4 +1,40 @@
-import {Child, n, NodeAttributes, VNode} from "./VNode";
+export interface NodeAttributes {
+    style?: Partial<CSSStyleDeclaration>;
+    class?: string;
+    hidden?: boolean;
+}
+
+export interface VNode {
+    tag: string;
+    attr?: NodeAttributes;
+    children?: Child[];
+}
+
+export type Child = VNode | string;
+
+function ni(tag: string, args: any[]): VNode {
+    if (args.length == 0) return {tag};
+    const first = args[0];
+    const isChild = !!first.tag || Array.isArray(first) || "string" === (typeof first)
+    if (isChild) {
+        const children = Array.isArray(first) ? first : args;
+        return {tag, children};
+    } else {
+        const attr = first;
+        const second = args[1];
+        if (!second) {
+            return {tag, attr};
+        }
+        const children = Array.isArray(second) ? second : args.slice(1);
+        return {tag, attr, children};
+    }
+}
+
+export function n(tag: string, ...args: any[]): VNode {
+    return ni(tag, args);
+}
+
+const nn = (tag: string) => (...args: any[]) => ni(tag, args);
 
 type TagOverloads = {
     (attributes: NodeAttributes): VNode;
@@ -8,12 +44,39 @@ type TagOverloads = {
     (attributes: NodeAttributes, ...children: Child[]): VNode;
 }
 
-const tags = ['a','b', 'body', 'br', 'canvas', 'code', 'button', 'div', 'em', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'label', 'legend', 'li', 'meta','ol', 'option', 'p', 'pre', 'script','select','span','strong','style','svg','table','tbody','td', 'textarea', 'th', 'thead', 'title', 'tr', 'ul', 'video']
-
-interface VNodes {
-    [x: string]: TagOverloads;
-}
-
-let v = {} as VNodes;
-tags.forEach( tag => v[tag] = (...args: any[]) => n(tag, ...args))
-export const {a,b, body, br, canvas, code, button, div, em, footer, form, h1, h2, h3, h4, h5, h6, head, header, hr, html, i, iframe, img, input, label, legend, li, meta,ol, option, p, pre, script,select,span,strong,style,svg,table,tbody,td, textarea, th, thead, title, tr, ul, video} = v;
+export const a: TagOverloads = nn('a');
+export const b: TagOverloads = nn('b');
+export const body: TagOverloads = nn('body');
+export const br: TagOverloads = nn('br');
+export const button: TagOverloads = nn('button');
+export const canvas: TagOverloads = nn('canvas');
+export const code: TagOverloads = nn('code');
+export const div: TagOverloads = nn('div');
+export const form: TagOverloads = nn('form');
+export const h1: TagOverloads = nn('h1');
+export const h2: TagOverloads = nn('h2');
+export const h3: TagOverloads = nn('h3');
+export const h4: TagOverloads = nn('h4');
+export const h5: TagOverloads = nn('h5');
+export const h6: TagOverloads = nn('h6');
+export const img: TagOverloads = nn('img');
+export const input: TagOverloads = nn('input');
+export const label: TagOverloads = nn('label');
+export const legend: TagOverloads = nn('legend');
+export const li: TagOverloads = nn('li');
+export const meta: TagOverloads = nn('meta');
+export const ol: TagOverloads = nn('ol');
+export const option: TagOverloads = nn('option');
+export const p: TagOverloads = nn('p');
+export const span: TagOverloads = nn('span');
+export const select: TagOverloads = nn('select');
+export const table: TagOverloads = nn('table');
+export const tbody: TagOverloads = nn('tbody');
+export const td: TagOverloads = nn('td');
+export const textarea: TagOverloads = nn('textarea');
+export const th: TagOverloads = nn('th');
+export const thead: TagOverloads = nn('thead');
+export const title: TagOverloads = nn('title');
+export const tr: TagOverloads = nn('tr');
+export const ul: TagOverloads = nn('ul');
+export const video: TagOverloads = nn('video');

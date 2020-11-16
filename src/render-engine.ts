@@ -1,4 +1,4 @@
-import {VNode} from "./VNode";
+import {VNode} from "./VNodes";
 
 export class RenderEngine {
     private rootElement: VNode;

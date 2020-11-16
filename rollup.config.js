@@ -21,6 +21,6 @@ export default {
       copy({targets: [{src:'static/index.html', dest: 'dist'}]}),
       serve(OUTPUT_FOLDER),
       livereload(OUTPUT_FOLDER),
-      terser()
+      // terser()
   ],
 };

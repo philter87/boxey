@@ -51,7 +51,6 @@ describe('Store tests', () => {
 
         assert.deepEqual(values, [0, 1]);
     })
-
 })
 
 describe('operators', () => {
