@@ -6,26 +6,26 @@ export interface Subscriber<T> {
     (value: T) : void;
 }
 export interface Get {
-    <T> (drop: Drop<T>) : T
+    <T> (drop: Store<T>) : T
 }
 
 interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Unsubscribe;
 }
 
-export interface Drop<T> extends Subscribable<T>{
+export interface Store<T> extends Subscribable<T>{
     map<R>(mapperFunction: (value: T) => R);
     pick(key: keyof T);
     snapshot(): T;
 }
 
 const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) => {
-    return new ReadDrop<R>(subscriber => {
+    return new ReadStore<R>(subscriber => {
         return source.subscribe( val => subscriber(mapperFunction(val)))
     })
 }
 
-class ReadDrop<T> implements Drop<T>{
+class ReadStore<T> implements Store<T>{
     private _subscribe: (subscriber: Subscriber<T>) => Unsubscribe;
 
     constructor( subscribe: (subscriber: Subscriber<T>) => Unsubscribe) {
@@ -51,8 +51,8 @@ class ReadDrop<T> implements Drop<T>{
     }
 }
 
-export const join = <R>(join: (get: Get) => R): Drop<R> => {
-    return new ReadDrop<R>(observer => {
+export const join = <R>(join: (get: Get) => R): Store<R> => {
+    return new ReadStore<R>(observer => {
         let areAllSubscribersInitialized = false;
         const values = [];
         const unsubscribes: Unsubscribe[] = [];
@@ -75,11 +75,11 @@ export const join = <R>(join: (get: Get) => R): Drop<R> => {
         return () => unsubscribes.forEach( unsub => unsub());
     })
 }
-export const drop = <T>(defaultValue: T): WriteDrop<T> => {
-    return new WriteDrop(defaultValue);
+export const store = <T>(defaultValue: T): WriteStore<T> => {
+    return new WriteStore(defaultValue);
 }
 
-class WriteDrop<T> implements Drop<T> {
+class WriteStore<T> implements Store<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 

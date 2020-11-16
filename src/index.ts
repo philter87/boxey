@@ -1,8 +1,8 @@
 
-import {drop} from "./drop";
+import {store} from "./store";
 import {a, button, div, n} from "./VNodes";
 
-const message = drop("Hello World");
+const message = store("Hello World");
 const MESSAGE = message.map(v => v.toUpperCase());
 
 let el = document.createElement('div');
