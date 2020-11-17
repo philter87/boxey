@@ -22,7 +22,7 @@ global.document = window.document;
 const render = (node: VNode) => {
     const target = document.createElement('div');
     new RenderEngine(node, target).initialRender()
-    return target;
+    return target.firstElementChild as HTMLElement;
 }
 
 describe('render-engine', () => {
@@ -38,8 +38,8 @@ describe('render-engine', () => {
 
         const target = render(elements);
 
-        assert.equal(target.childElementCount, 1);
-        assert.equal(target.innerHTML, '<div class="hello" style="height: 100px;"></div>')
+        assert.equal(target.className, "hello");
+        assert.equal(target.style.height, "100px");
     })
     it('initialRender, text child', () => {
         const text = 'TextNode';
@@ -47,7 +47,7 @@ describe('render-engine', () => {
 
         const target = render(elements)
 
-        assert.equal(target.innerHTML, '<div>' + text + '</div>');
+        assert.equal(target.innerHTML, text);
 
     })
     it('initialRender, two div children', () => {
@@ -58,24 +58,26 @@ describe('render-engine', () => {
 
         const target = render(elements)
 
-        assert.equal(target.childElementCount, 1);
-        assert.equal(target.children[0].children.length, 2);
+        assert.equal(target.children.length, 2);
     })
     it('style from store', () => {
-        const dot = store("100px");
+        const height = "100px";
+        const dot = store(height);
         const node = div({style: {height: dot}})
 
         const target = render(node)
 
-        assert.equal(target.innerHTML,'<div style="height: 100px;"></div>')
+        assert.equal(target.style.height, height)
     })
     it('style from dot change', () => {
-        const dot = store("100px");
+        const firstHeight = "100px";
+        const dot = store(firstHeight);
         const node = div({style: {height: dot}})
 
         const target = render(node)
-        dot.set("200px")
+        const secondHeight = "200px";
+        dot.set(secondHeight)
 
-        assert.equal(target.innerHTML,'<div style="height: 200px;"></div>')
+        assert.equal(target.style.height, secondHeight);
     })
 })
