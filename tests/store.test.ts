@@ -2,7 +2,6 @@ import {assert } from "chai";
 import {describe} from "mocha";
 import {join, store} from "../src/store";
 
-
 describe('Store tests', () => {
     it('Initial value', () => {
         const expected = 'Hello';
@@ -41,12 +40,12 @@ describe('Store tests', () => {
     it('Unsubscribe', () => {
         const values = [];
         const num = store(0);
-        const unsubscribe = num.subscribe( val => {
+        const subscription = num.subscribe( val => {
             values.push(val);
         });
         num.set(1);
 
-        unsubscribe();
+        subscription.unsubscribe();
         num.set(2);
 
         assert.deepEqual(values, [0, 1]);
@@ -94,8 +93,8 @@ describe('operators', () => {
         const joined = join(get => get(source1) + get(source2));
         let actualValue;
 
-        const unsubscribe = joined.subscribe( val => actualValue = val);
-        unsubscribe()
+        const subscription = joined.subscribe( val => actualValue = val);
+        subscription.unsubscribe()
         source1.set(10)
         source2.set(10)
 

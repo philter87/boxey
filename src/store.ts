@@ -1,16 +1,17 @@
-export interface Unsubscribe {
-    (): void;
-}
-
 export interface Subscriber<T> {
     (value: T) : void;
 }
+
+export interface Subscription {
+    unsubscribe();
+}
+
 export interface Get {
     <T> (drop: Store<T>) : T
 }
 
 interface Subscribable<T> {
-    subscribe(subscriber: Subscriber<T>): Unsubscribe;
+    subscribe(subscriber: Subscriber<T>): Subscription;
 }
 
 export interface Store<T> extends Subscribable<T>{
@@ -25,14 +26,14 @@ const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) 
     })
 }
 
-class ReadStore<T> implements Store<T>{
-    private _subscribe: (subscriber: Subscriber<T>) => Unsubscribe;
+class ReadStore<T> implements Subscribable<T> {
+    private _subscribe: (subscriber: Subscriber<T>) => Subscription;
 
-    constructor( subscribe: (subscriber: Subscriber<T>) => Unsubscribe) {
+    constructor( subscribe: (subscriber: Subscriber<T>) => Subscription) {
         this._subscribe = subscribe;
     }
 
-    subscribe(subscriber: Subscriber<T>): Unsubscribe {
+    subscribe(subscriber: Subscriber<T>): Subscription {
         return this._subscribe(subscriber);
     }
 
@@ -46,7 +47,7 @@ class ReadStore<T> implements Store<T>{
 
     snapshot(): T {
         let value;
-        this.subscribe(v => v = value)();
+        this.subscribe(v => value = v).unsubscribe();
         return value;
     }
 }
@@ -55,12 +56,12 @@ export const join = <R>(join: (get: Get) => R): Store<R> => {
     return new ReadStore<R>(observer => {
         let areAllSubscribersInitialized = false;
         const values = [];
-        const unsubscribes: Unsubscribe[] = [];
+        const subscriptions: Subscription[] = [];
         let index = 0;
         const get = <Q>(s: Subscribable<Q>) => {
             const currentIndex = index++;
             if(!areAllSubscribersInitialized){
-                unsubscribes[currentIndex] = s.subscribe( val => {
+                subscriptions[currentIndex] = s.subscribe( val => {
                     values[currentIndex] = val;
                     if(areAllSubscribersInitialized) {
                         index = 0;
@@ -72,14 +73,14 @@ export const join = <R>(join: (get: Get) => R): Store<R> => {
         }
         observer(join(get))
         areAllSubscribersInitialized = true;
-        return () => unsubscribes.forEach( unsub => unsub());
+        return {unsubscribe : () => subscriptions.forEach( sub => sub.unsubscribe()) };
     })
 }
 export const store = <T>(defaultValue: T): WriteStore<T> => {
     return new WriteStore(defaultValue);
 }
 
-class WriteStore<T> implements Store<T> {
+class WriteStore<T> implements Subscribable<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 
@@ -88,10 +89,10 @@ class WriteStore<T> implements Store<T> {
         this.subscribers = [];
     }
 
-    subscribe(subscriber: (value: T) => void): Unsubscribe {
+    subscribe(subscriber: (value: T) => void): Subscription {
         subscriber(this.value);
         const index = this.subscribers.push(subscriber);
-        return () => delete this.subscribers[index-1];
+        return { unsubscribe: () => delete this.subscribers[index-1] };
     }
 
     set(value: T) {
@@ -113,7 +114,7 @@ class WriteStore<T> implements Store<T> {
 
     snapshot(): T {
         let value;
-        this.subscribe(v => value = v)();
+        this.subscribe(v => value = v).unsubscribe();
         return value;
     }
 }
