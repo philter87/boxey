@@ -1,5 +1,16 @@
+import {Store} from "./store";
+
+type CssKey = keyof CSSStyleDeclaration;
+
+
+type CssStyle = {
+    [key in CssKey]?: Store<string> | string;
+};
+
+//export type CssStyle = Partial<CSSStyleDeclaration> | CssStore;
+
 export interface NodeAttributes {
-    style?: Partial<CSSStyleDeclaration>;
+    style?: CssStyle;
     class?: string;
     hidden?: boolean;
 }

@@ -40,15 +40,30 @@ describe('Store tests', () => {
     it('Unsubscribe', () => {
         const values = [];
         const num = store(0);
-        const subscription = num.subscribe( val => {
-            values.push(val);
-        });
+        const subscription = num.subscribe( val => values.push(val));
         num.set(1);
 
         subscription.unsubscribe();
         num.set(2);
 
         assert.deepEqual(values, [0, 1]);
+    })
+    it('subscribe, unsubscribe and subscribe', () => {
+        let value;
+        const num = store(5);
+        let subscription = num.subscribe( val => value = val);
+        num.set(1);
+
+        subscription.unsubscribe();
+        num.set(2);
+        num.set(3);
+        assert.equal(value, 1, "Nothing happend because unsubscribed")
+
+        num.subscribe( val => {
+            value = val;
+        });
+        assert.equal(value, 3);
+
     })
 })
 

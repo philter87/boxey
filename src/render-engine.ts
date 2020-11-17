@@ -30,9 +30,13 @@ export class RenderEngine {
         }
         if (el.attr) {
             if (el.attr.class) {domEl.className = el.attr.class;}
-
             for(const key in el.attr.style) {
-                domEl.style[key] = el.attr.style[key]
+                const styleVal = el.attr.style[key];
+                if ("string" === typeof styleVal) {
+                    domEl.style[key] = styleVal;
+                } else {
+                    styleVal.subscribe( newStyleVal => domEl.style[key] = newStyleVal);
+                }
             }
         }
         return domEl;
