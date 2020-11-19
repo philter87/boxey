@@ -1,4 +1,5 @@
 import {Store} from "./store";
+import {isArray, isNode, isString} from "./utils";
 
 type CssKey = keyof CSSStyleDeclaration;
 
@@ -7,9 +8,7 @@ type CssStyle = {
     [key in CssKey]?: Store<string> | string;
 };
 
-//export type CssStyle = Partial<CSSStyleDeclaration> | CssStore;
-
-export interface NodeAttributes {
+export interface NodeAttributes extends Partial<GlobalEventHandlers> {
     style?: CssStyle;
     class?: string;
     hidden?: boolean;
@@ -26,8 +25,8 @@ export type Child = VNode | string;
 function ni(tag: string, args: any[]): VNode {
     if (args.length == 0) return {tag};
     const first = args[0];
-    const isChild = !!first.tag || Array.isArray(first) || "string" === (typeof first)
-    if (isChild) {
+    const isChildLike = isNode(first) || isArray(first) || isString(first);
+    if (isChildLike) {
         const children = Array.isArray(first) ? first : args;
         return {tag, children};
     } else {
@@ -36,7 +35,7 @@ function ni(tag: string, args: any[]): VNode {
         if (!second) {
             return {tag, attr};
         }
-        const children = Array.isArray(second) ? second : args.slice(1);
+        const children = isArray(second) ? second : args.slice(1);
         return {tag, attr, children};
     }
 }

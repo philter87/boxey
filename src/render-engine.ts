@@ -1,44 +1,82 @@
 import {VNode} from "./VNodes";
+import {Subscription} from "./store";
+import {isString} from "./utils";
+
+interface DynamicElement {
+    id: number;
+    domElement: HTMLElement;
+    dynamicChildren: number[];
+    subscriptions: Subscription[];
+}
+
+interface ChildInfo {
+    domElement: HTMLElement;
+    dynamicChildren: number[];
+}
 
 export class RenderEngine {
-    private rootElement: VNode;
+    private rootNode: VNode;
     private target: HTMLElement;
+    private dynamicElements: {[id: string] : DynamicElement};
+    private counter: number;
 
-    constructor(rootElement: VNode, target: HTMLElement) {
-        this.rootElement = rootElement;
+    constructor(node: VNode, target: HTMLElement) {
+        this.rootNode = node;
         this.target = target;
+        this.dynamicElements = {};
     }
 
     initialRender() {
         const fragment = document.createDocumentFragment();
-        const el = this.rootElement;
-        fragment.appendChild(this.createDomElement(el));
+        let dom = this.createDomElement(this.rootNode)
+        fragment.appendChild(dom.domElement);
         this.target.appendChild(fragment);
     }
 
 
-    private createDomElement(el: VNode) {
-        const domEl = document.createElement(el.tag)
-        if (el.children) {
-            el.children.forEach( childEl => {
-                if("string" === typeof childEl) {
-                    domEl.appendChild(document.createTextNode(childEl))
+    private createDomElement(node: VNode): ChildInfo {
+        const domElement = document.createElement(node.tag)
+        const subscriptions = [];
+        const dynamicChildren = [];
+
+        for(let key in node.attr) {
+            if(key === 'class') {
+                domElement.className = node.attr.class;
+            } else if (key === 'style') {
+                for(const key in node.attr.style) {
+                    const styleVal = node.attr.style[key];
+                    if ( isString(styleVal) ) {
+                        domElement.style[key] = styleVal;
+                    } else {
+                        subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
+                    }
+                }
+            } else {
+                domElement[key] = node.attr[key];
+            }
+        }
+        if (node.children) {
+            node.children.forEach( childEl => {
+                if ( isString(childEl) ) {
+                    domElement.appendChild(document.createTextNode(childEl))
                 } else {
-                    domEl.appendChild(this.createDomElement(childEl))
+                    const childInfo = this.createDomElement(childEl);
+                    dynamicChildren.push(childInfo.dynamicChildren);
+                    domElement.appendChild(childInfo.domElement);
                 }
             });
         }
-        if (el.attr) {
-            if (el.attr.class) {domEl.className = el.attr.class;}
-            for(const key in el.attr.style) {
-                const styleVal = el.attr.style[key];
-                if ("string" === typeof styleVal) {
-                    domEl.style[key] = styleVal;
-                } else {
-                    styleVal.subscribe( newStyleVal => domEl.style[key] = newStyleVal);
-                }
-            }
+        // If this element is dynamic, we create a dynamicElement (with the current dynamicChildren) and notify the
+        // parent that this node is dynamic by returning dynamicChildren[idOfThisNode].
+        // If this element is NOT dynamic, we tell the parent which children are.
+        const isDynamic = subscriptions.length > 0;
+        if (isDynamic) {
+            const id = ++this.counter;
+            this.dynamicElements[id] = {id, dynamicChildren, domElement, subscriptions}
+            return {domElement, dynamicChildren: [id]};
+        } else {
+            return {domElement, dynamicChildren};
         }
-        return domEl;
+
     }
 }

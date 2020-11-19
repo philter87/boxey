@@ -80,4 +80,25 @@ describe('render-engine', () => {
 
         assert.equal(target.style.height, secondHeight);
     })
+    it('hidden attr', () => {
+        const node = div({hidden: true});
+
+        const target = render(node)
+
+        assert.equal(target.hidden, true);
+    })
+    it('click event change style.height', () => {
+        const height1 = '100px';
+        const height2 = '200px';
+
+        const height$ = store(height1);
+        const onclick = () => height$.set(height2);
+        const node = div({style: {height: height$}, onclick});
+
+        const target = render(node)
+
+        assert.equal(target.style.height, height1);
+        target.click();
+        assert.equal(target.style.height, height2);
+    })
 })

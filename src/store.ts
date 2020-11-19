@@ -10,7 +10,7 @@ export interface Get {
     <T> (drop: Store<T>) : T
 }
 
-interface Subscribable<T> {
+export interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Subscription;
 }
 
