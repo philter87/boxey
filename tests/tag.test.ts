@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import {describe} from "mocha";
-import {div, a, n, VNode} from "../src/VNodes"
+import {div, a, n, VElement} from "../src/VNodes"
 
 const DIV = 'div';
 const CLASS_NAME = 'aClass';
@@ -10,7 +10,7 @@ const SECOND_CHILD = 'world'
 const CHILDREN = [FIRST_CHILD, SECOND_CHILD];
 
 
-function equals(actual: VNode, expected: VNode) {
+function equals(actual: VElement, expected: VElement) {
     assert.deepEqual(actual, expected, JSON.stringify(actual) + " vs " + JSON.stringify(expected));
 }
 

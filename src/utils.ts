@@ -1,5 +1,5 @@
 import {Subscribable} from "./store";
-import {VNode} from "./VNodes";
+import {VElement, VNode} from "./VNodes";
 
 export const isString = (obj: any): obj is string => {
     return 'string' == typeof obj;
@@ -21,6 +21,14 @@ export const isSubscribable = <T>(obj: (T | any)): obj is Subscribable<T> => {
     return (typeof obj) == 'object' && !!obj && "subscribe" in obj;
 }
 
+export const isElement = (obj: any): obj is VElement => {
+    return !!obj && !!obj.tag;
+}
+
 export const isNode = (obj: any): obj is VNode => {
-    return !!obj && !!obj?.tag;
+    return !!obj && isElement(obj) || isString(obj);
+}
+
+export const isNodeArray = (obj: VNode | VNode[]): obj is VNode[] => {
+    return isArray(obj);
 }

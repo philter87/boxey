@@ -1,5 +1,5 @@
 import {Store, Subscribable} from "./store";
-import {isArray, isNode, isString, isSubscribable} from "./utils";
+import {isArray, isElement, isString, isSubscribable} from "./utils";
 
 type CssKey = keyof CSSStyleDeclaration;
 
@@ -14,18 +14,20 @@ export interface NodeAttributes extends Partial<GlobalEventHandlers> {
     hidden?: boolean;
 }
 
-export interface VNode {
+export interface VElement {
     tag: string;
     attr?: NodeAttributes;
     children?: Child[];
 }
 
-export type Child = VNode | string | Subscribable<string | VNode | null>;
+export type VNode = VElement | string;
 
-function ni(tag: string, args: any[]): VNode {
+export type Child = VNode | VNode[] | Subscribable<VNode | VNode[] | null>;
+
+function ni(tag: string, args: any[]): VElement {
     if (args.length == 0) return {tag};
     const first = args[0];
-    const isChildLike = isNode(first) || isArray(first) || isString(first) || isSubscribable(first);
+    const isChildLike = isElement(first) || isArray(first) || isString(first) || isSubscribable(first);
     if (isChildLike) {
         const children = isArray(first) ? first : args;
         return {tag, children};
@@ -40,18 +42,18 @@ function ni(tag: string, args: any[]): VNode {
     }
 }
 
-export function n(tag: string, ...args: any[]): VNode {
+export function n(tag: string, ...args: any[]): VElement {
     return ni(tag, args);
 }
 
 const nn = (tag: string) => (...args: any[]) => ni(tag, args);
 
 type TagOverloads = {
-    (attributes: NodeAttributes): VNode;
-    (children: Child[]): VNode;
-    (...children: Child[]): VNode;
-    (attributes: NodeAttributes, children: Child[]): VNode;
-    (attributes: NodeAttributes, ...children: Child[]): VNode;
+    (attributes: NodeAttributes): VElement;
+    (children: Child[]): VElement;
+    (...children: Child[]): VElement;
+    (attributes: NodeAttributes, children: Child[]): VElement;
+    (attributes: NodeAttributes, ...children: Child[]): VElement;
 }
 
 export const a: TagOverloads = nn('a');

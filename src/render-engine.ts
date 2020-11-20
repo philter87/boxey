@@ -1,21 +1,14 @@
-import {VNode} from "./VNodes";
+import {VElement, VNode} from "./VNodes";
 import {Subscription} from "./store";
-import {calcArraySum, isString, isSubscribable} from "./utils";
-
-interface DynamicElement {
-    id: number;
-    domElement: Node;
-    dynamicChildren: number[];
-    subscriptions: Subscription[];
-}
+import {calcArraySum, isNode, isNodeArray, isString, isSubscribable} from "./utils";
 
 interface ChildInfo {
     domElement: Node;
     subscription?: Subscription;
-    positionInParent?: number;
+    nestedList?: ChildInfo[];
 }
 
-const createDomElement = (node: VNode | string): ChildInfo => {
+const createDomElement = (node: VNode): ChildInfo => {
     if (isString(node)) {
         return {domElement: document.createTextNode(node)}
     }
@@ -46,12 +39,29 @@ const createDomElement = (node: VNode | string): ChildInfo => {
             if(isSubscribable(child)) {
                 childSizes[i] = 0;
                 const subscription = child.subscribe(newChild => {
-                    // if child is null/undefined
-                    if(!newChild) {
+                    if(!newChild) { // if null
                         childSizes[i] = 0;
                         return;
                     }
                     const prevChildInfo = childInfos[i];
+
+                    if(isNodeArray(newChild)) {
+                        let position = calcArraySum(childSizes, i);
+                        const fragment = document.createDocumentFragment();
+
+                        if (prevChildInfo) {
+                           prevChildInfo.subscription?.unsubscribe();
+                           prevChildInfo.nestedList.forEach( c => {
+                               c.subscription?.unsubscribe();
+                               domElement.removeChild(c.domElement)
+                           } );
+
+                        } else {
+
+                        }
+                        childSizes[i] = newChild.length;
+                        return;
+                    }
                     const newChildInfo = createDomElement(newChild);
                     if(prevChildInfo) {
                         prevChildInfo.subscription.unsubscribe();
@@ -70,19 +80,27 @@ const createDomElement = (node: VNode | string): ChildInfo => {
                     childSizes[i] = 1;
                 })
                 subscriptions.push(subscription);
-            } else {
-                childSizes[i] = 1;
+            } else if(isNodeArray(child)) {
+                childSizes[i] = child.length;
+                const fragment = document.createDocumentFragment();
+                child.forEach( subChild => {
+                    const childInfo = createDomElement(subChild);
+                    subscriptions.push(childInfo.subscription);
+                    fragment.appendChild(childInfo.domElement);
+                })
+                domElement.appendChild(fragment);
+            } else { // isArray
                 const childInfo = createDomElement(child);
                 subscriptions.push(childInfo.subscription);
                 domElement.appendChild(childInfo.domElement);
-                childInfos[i] = childInfo;
+                childSizes[i] = 1;
             }
         }
     }
     return {domElement, subscription: {unsubscribe: () => subscriptions.forEach(s => s.unsubscribe())}};
 }
 
-export const dotRender = (node: VNode, target: HTMLElement) => {
+export const dotRender = (node: VElement, target: HTMLElement) => {
     const fragment = document.createDocumentFragment();
     fragment.appendChild(createDomElement(node).domElement);
     target.appendChild(fragment);

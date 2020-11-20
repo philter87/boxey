@@ -1,5 +1,5 @@
 import {describe} from "mocha";
-import {a, div, span, VNode} from "../src/VNodes";
+import {a, div, span, VElement} from "../src/VNodes";
 import { JSDOM } from 'jsdom'
 import { assert } from "chai";
 import {store} from "../src/store";
@@ -19,7 +19,7 @@ const { window } = new JSDOM('<!doctype html><html><body></body></html>');
 global.document = window.document;
 // global.window = global.document.defaultView;
 
-const render = (node: VNode) => {
+const render = (node: VElement) => {
     const target = dotRender(node, document.createElement('div'))
     return target.firstChild as HTMLElement;
 }
@@ -211,5 +211,16 @@ describe('render-engine', () => {
         assert.equal(target.childNodes[1].textContent, 'DSS');
         assert.equal(target.childNodes[2].textContent, 'SDS');
         assert.equal(target.childNodes[3].textContent, 'SSD');
+    })
+    it('A list child', () => {
+        const node = div(
+            "A",
+            ["B","C","D"],
+            "E"
+        );
+
+        const target = render(node);
+
+        assert.equal(target.innerHTML, "ABCDE")
     })
 })
