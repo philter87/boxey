@@ -1,5 +1,5 @@
-import {Store} from "./store";
-import {isArray, isNode, isString} from "./utils";
+import {Store, Subscribable} from "./store";
+import {isArray, isNode, isString, isSubscribable} from "./utils";
 
 type CssKey = keyof CSSStyleDeclaration;
 
@@ -20,14 +20,14 @@ export interface VNode {
     children?: Child[];
 }
 
-export type Child = VNode | string;
+export type Child = VNode | string | Subscribable<string | VNode | null>;
 
 function ni(tag: string, args: any[]): VNode {
     if (args.length == 0) return {tag};
     const first = args[0];
-    const isChildLike = isNode(first) || isArray(first) || isString(first);
+    const isChildLike = isNode(first) || isArray(first) || isString(first) || isSubscribable(first);
     if (isChildLike) {
-        const children = Array.isArray(first) ? first : args;
+        const children = isArray(first) ? first : args;
         return {tag, children};
     } else {
         const attr = first;

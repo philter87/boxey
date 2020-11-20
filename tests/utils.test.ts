@@ -1,6 +1,6 @@
 import {describe} from "mocha";
 import { assert } from "chai";
-import {isArray, isNode, isString, isSubscribable} from "../src/utils";
+import {calcArraySum, isArray, isNode, isString, isSubscribable} from "../src/utils";
 import {store} from "../src/store";
 
 const ARRAY: any[] = ['aString', ['an array'], store(2)];
@@ -39,6 +39,14 @@ describe('utils', () => {
         for (let i = 0; i < questions.length; i++){
             assert.equal(isNode(questions[i]), answers[i], "error on index: " + i)
         }
+    })
+    it( 'calcArraySum', () => {
+        const arr = [1, 2, 3, 4, 5];
+        assert.equal(0, calcArraySum(arr, 0));
+        assert.equal(1, calcArraySum(arr, 1));
+        assert.equal(3, calcArraySum(arr, 2));
+        assert.equal(6, calcArraySum(arr, 3));
+        assert.equal(10, calcArraySum(arr, 4));
     })
 
 })

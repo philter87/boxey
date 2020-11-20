@@ -47,6 +47,7 @@ describe('Store tests', () => {
         num.set(2);
 
         assert.deepEqual(values, [0, 1]);
+        assert.equal(num.getSubscriberCount(), 0);
     })
     it('subscribe, unsubscribe and subscribe', () => {
         let value;

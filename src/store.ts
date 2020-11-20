@@ -91,13 +91,19 @@ class WriteStore<T> implements Subscribable<T> {
 
     subscribe(subscriber: (value: T) => void): Subscription {
         subscriber(this.value);
-        const index = this.subscribers.push(subscriber);
-        return { unsubscribe: () => delete this.subscribers[index-1] };
+        this.subscribers.push(subscriber);
+        return { unsubscribe: () => {
+            const index = this.subscribers.indexOf(subscriber);
+            if (index > -1) {
+                this.subscribers.splice(index, 1);
+            }
+            }
+        };
     }
 
     set(value: T) {
         this.value = value;
-        this.subscribers.forEach(o => o && o(this.value));
+        this.subscribers.forEach(subscriber => subscriber && subscriber(this.value));
     }
 
     update(updateFunction: (currentValue: T) => T) {
@@ -116,5 +122,9 @@ class WriteStore<T> implements Subscribable<T> {
         let value;
         this.subscribe(v => value = v).unsubscribe();
         return value;
+    }
+
+    getSubscriberCount(): number {
+        return this.subscribers.length;
     }
 }

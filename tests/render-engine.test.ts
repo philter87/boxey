@@ -1,9 +1,9 @@
 import {describe} from "mocha";
-import {RenderEngine} from "../src/render-engine";
-import {div, VNode} from "../src/VNodes";
+import {a, div, span, VNode} from "../src/VNodes";
 import { JSDOM } from 'jsdom'
 import { assert } from "chai";
 import {store} from "../src/store";
+import {dotRender} from "../src/render-engine";
 
 declare global {
     namespace NodeJS {
@@ -20,9 +20,8 @@ global.document = window.document;
 // global.window = global.document.defaultView;
 
 const render = (node: VNode) => {
-    const target = document.createElement('div');
-    new RenderEngine(node, target).initialRender()
-    return target.firstElementChild as HTMLElement;
+    const target = dotRender(node, document.createElement('div'))
+    return target.firstChild as HTMLElement;
 }
 
 describe('render-engine', () => {
@@ -100,5 +99,117 @@ describe('render-engine', () => {
         assert.equal(target.style.height, height1);
         target.click();
         assert.equal(target.style.height, height2);
+    })
+    it('child in store', () => {
+        const div$ = store(div());
+        const node = div(div$)
+
+        const target = render(node);
+
+        assert.equal(target.firstElementChild.tagName, 'DIV');
+    })
+    it('child replaced with store change', () => {
+        const show = store(true);
+        const node = div([
+            show.map( b => b ? div() : span())
+        ])
+
+        const target = render(node);
+        assert.equal(target.firstElementChild.tagName, 'DIV');
+        show.set(false);
+        assert.equal(target.firstElementChild.tagName, 'SPAN');
+    })
+    it('one of three children is replaced with store change', () => {
+        const show = store(true);
+        const node = div([
+            a(),
+            show.map( b => b ? div() : span()),
+            a(),
+        ])
+
+        const target = render(node);
+        assert.equal(target.children[1].tagName, 'DIV');
+        show.set(false);
+        assert.equal(target.children[1].tagName, 'SPAN');
+    })
+    it('child with subscriptions is replaced by one without', () => {
+        const show$ = store(true);
+        const str$ = store("Hello World");
+        const height$ = store('100px');
+        const node = div(show$.map( show => show ? div({style: {height: height$}}, str$): span()))
+
+        render(node);
+
+        assert.equal(str$.getSubscriberCount(), 1);
+        assert.equal(height$.getSubscriberCount(), 1);
+
+        show$.set(false);
+        assert.equal(str$.getSubscriberCount(), 0);
+        assert.equal(height$.getSubscriberCount(), 0);
+    })
+    it('allow first child to be null', () => {
+        const show$ = store(false);
+        const node = div(
+            show$.map( show => show ? div() : null),
+            a()
+        )
+
+        const target = render(node);
+
+        assert.equal(target.childNodes.length, 1);
+        show$.set(true);
+        assert.equal(target.childNodes.length, 2);
+        assert.equal(target.children[0].tagName, 'DIV');
+    })
+    it('allow second child to be null', () => {
+        const show$ = store(false);
+        const node = div(
+            a(),
+            show$.map( show => show ? div() : null),
+            a()
+        )
+
+        const target = render(node);
+
+        assert.equal(target.childNodes.length, 2);
+        show$.set(true);
+        assert.equal(target.children[1].tagName, 'DIV');
+    })
+    it('allow second child to be null', () => {
+        const show$ = store(false);
+        const node = div(
+            a(),
+            a(),
+            show$.map( show => show ? div() : null),
+        )
+
+        const target = render(node);
+
+        assert.equal(target.childNodes.length, 2);
+        show$.set(true);
+        assert.equal(target.children[2].tagName, 'DIV');
+    })
+    it('text nodes allow null', () => {
+        const text$ = store<string | null>(null);
+
+        const node = div(
+            div('S','S','S'),
+            div(text$, 'S','S'),
+            div('S',text$, 'S'),
+            div('S', 'S', text$),
+        );
+
+        const target = render(node);
+
+        assert.equal(target.childNodes[0].textContent, 'SSS');
+        assert.equal(target.childNodes[1].textContent, 'SS');
+        assert.equal(target.childNodes[2].textContent, 'SS');
+        assert.equal(target.childNodes[3].textContent, 'SS');
+
+        text$.set('D')
+        assert.equal(target.childNodes[0].textContent, 'SSS');
+        assert.equal(target.childNodes[1].textContent, 'DSS');
+        assert.equal(target.childNodes[2].textContent, 'SDS');
+        assert.equal(target.childNodes[3].textContent, 'SSD');
     })
 })

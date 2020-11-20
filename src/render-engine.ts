@@ -1,82 +1,90 @@
 import {VNode} from "./VNodes";
 import {Subscription} from "./store";
-import {isString} from "./utils";
+import {calcArraySum, isString, isSubscribable} from "./utils";
 
 interface DynamicElement {
     id: number;
-    domElement: HTMLElement;
+    domElement: Node;
     dynamicChildren: number[];
     subscriptions: Subscription[];
 }
 
 interface ChildInfo {
-    domElement: HTMLElement;
-    dynamicChildren: number[];
+    domElement: Node;
+    subscription?: Subscription;
+    positionInParent?: number;
 }
 
-export class RenderEngine {
-    private rootNode: VNode;
-    private target: HTMLElement;
-    private dynamicElements: {[id: string] : DynamicElement};
-    private counter: number;
-
-    constructor(node: VNode, target: HTMLElement) {
-        this.rootNode = node;
-        this.target = target;
-        this.dynamicElements = {};
+const createDomElement = (node: VNode | string): ChildInfo => {
+    if (isString(node)) {
+        return {domElement: document.createTextNode(node)}
     }
+    const domElement = document.createElement(node.tag)
+    const subscriptions = [];
 
-    initialRender() {
-        const fragment = document.createDocumentFragment();
-        let dom = this.createDomElement(this.rootNode)
-        fragment.appendChild(dom.domElement);
-        this.target.appendChild(fragment);
-    }
-
-
-    private createDomElement(node: VNode): ChildInfo {
-        const domElement = document.createElement(node.tag)
-        const subscriptions = [];
-        const dynamicChildren = [];
-
-        for(let key in node.attr) {
-            if(key === 'class') {
-                domElement.className = node.attr.class;
-            } else if (key === 'style') {
-                for(const key in node.attr.style) {
-                    const styleVal = node.attr.style[key];
-                    if ( isString(styleVal) ) {
-                        domElement.style[key] = styleVal;
-                    } else {
-                        subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
-                    }
+    for(let key in node.attr) {
+        if(key === 'class') {
+            domElement.className = node.attr.class;
+        } else if (key === 'style') {
+            for(const key in node.attr.style) {
+                const styleVal = node.attr.style[key];
+                if ( isString(styleVal) ) {
+                    domElement.style[key] = styleVal;
+                } else {
+                    subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
                 }
+            }
+        } else {
+            domElement[key] = node.attr[key];
+        }
+    }
+    if(node.children) {
+        const childInfos: {[order: number]: ChildInfo} = {};
+        const childSizes: number[] = [];
+        for (let i = 0; i < node.children.length; i++) {
+            let child = node.children[i];
+            if(isSubscribable(child)) {
+                childSizes[i] = 0;
+                const subscription = child.subscribe(newChild => {
+                    // if child is null/undefined
+                    if(!newChild) {
+                        childSizes[i] = 0;
+                        return;
+                    }
+                    const prevChildInfo = childInfos[i];
+                    const newChildInfo = createDomElement(newChild);
+                    if(prevChildInfo) {
+                        prevChildInfo.subscription.unsubscribe();
+                        domElement.replaceChild(newChildInfo.domElement, prevChildInfo.domElement);
+                    } else {
+                        let position = calcArraySum(childSizes, i);
+                        if (position == 0) {
+                            domElement.prepend(newChildInfo.domElement);
+                        } else {
+                            const prevNode = domElement.childNodes[position-1];
+                            const next = prevNode.nextSibling
+                            domElement.insertBefore(newChildInfo.domElement, next);
+                        }
+                    }
+                    childInfos[i] = newChildInfo;
+                    childSizes[i] = 1;
+                })
+                subscriptions.push(subscription);
             } else {
-                domElement[key] = node.attr[key];
+                childSizes[i] = 1;
+                const childInfo = createDomElement(child);
+                subscriptions.push(childInfo.subscription);
+                domElement.appendChild(childInfo.domElement);
+                childInfos[i] = childInfo;
             }
         }
-        if (node.children) {
-            node.children.forEach( childEl => {
-                if ( isString(childEl) ) {
-                    domElement.appendChild(document.createTextNode(childEl))
-                } else {
-                    const childInfo = this.createDomElement(childEl);
-                    dynamicChildren.push(childInfo.dynamicChildren);
-                    domElement.appendChild(childInfo.domElement);
-                }
-            });
-        }
-        // If this element is dynamic, we create a dynamicElement (with the current dynamicChildren) and notify the
-        // parent that this node is dynamic by returning dynamicChildren[idOfThisNode].
-        // If this element is NOT dynamic, we tell the parent which children are.
-        const isDynamic = subscriptions.length > 0;
-        if (isDynamic) {
-            const id = ++this.counter;
-            this.dynamicElements[id] = {id, dynamicChildren, domElement, subscriptions}
-            return {domElement, dynamicChildren: [id]};
-        } else {
-            return {domElement, dynamicChildren};
-        }
-
     }
+    return {domElement, subscription: {unsubscribe: () => subscriptions.forEach(s => s.unsubscribe())}};
+}
+
+export const dotRender = (node: VNode, target: HTMLElement) => {
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(createDomElement(node).domElement);
+    target.appendChild(fragment);
+    return target;
 }
