@@ -1,6 +1,6 @@
 import {VElement, VNode} from "./VNodes";
-import {Subscription} from "./store";
-import {calcArraySum, isNode, isNodeArray, isString, isSubscribable} from "./utils";
+import {MultiSubscription, Subscription} from "./store";
+import {calcArraySum, isNodeArray, isString, isSubscribable} from "./utils";
 
 interface ChildInfo {
     domElement: Node;
@@ -13,7 +13,7 @@ const createDomElement = (node: VNode): ChildInfo => {
         return {domElement: document.createTextNode(node)}
     }
     const domElement = document.createElement(node.tag)
-    const subscriptions = [];
+    const subscriptions = new MultiSubscription();
 
     for(let key in node.attr) {
         if(key === 'class') {
@@ -24,7 +24,7 @@ const createDomElement = (node: VNode): ChildInfo => {
                 if ( isString(styleVal) ) {
                     domElement.style[key] = styleVal;
                 } else {
-                    subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
+                    subscriptions.add(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
                 }
             }
         } else {
@@ -54,7 +54,7 @@ const createDomElement = (node: VNode): ChildInfo => {
                         const fragment = document.createDocumentFragment();
                         newChild.forEach( c => {
                             const childInfo = createDomElement(c);
-                            subscriptions.push(childInfo.subscription);
+                            subscriptions.add(childInfo.subscription);
                             fragment.appendChild(childInfo.domElement)
                         });
 
@@ -92,25 +92,25 @@ const createDomElement = (node: VNode): ChildInfo => {
                     childInfos[i] = newChildInfo;
                     childSizes[i] = 1;
                 })
-                subscriptions.push(subscription);
+                subscriptions.add(subscription);
             } else if(isNodeArray(child)) {
                 childSizes[i] = child.length;
                 const fragment = document.createDocumentFragment();
                 child.forEach( subChild => {
                     const childInfo = createDomElement(subChild);
-                    subscriptions.push(childInfo.subscription);
+                    subscriptions.add(childInfo.subscription);
                     fragment.appendChild(childInfo.domElement);
                 })
                 domElement.appendChild(fragment);
             } else {
                 const childInfo = createDomElement(child);
-                subscriptions.push(childInfo.subscription);
+                subscriptions.add(childInfo.subscription);
                 domElement.appendChild(childInfo.domElement);
                 childSizes[i] = 1;
             }
         }
     }
-    return {domElement, subscription: {unsubscribe: () => subscriptions.forEach(s => s.unsubscribe())}};
+    return {domElement, subscription: subscriptions};
 }
 
 export const dotRender = (node: VElement, target: HTMLElement) => {

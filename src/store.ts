@@ -6,6 +6,24 @@ export interface Subscription {
     unsubscribe();
 }
 
+export class MultiSubscription implements Subscription {
+    private readonly subscriptions: Subscription[];
+
+    constructor(){
+        this.subscriptions = [];
+    }
+
+    add(subscription: Subscription) {
+        this.subscriptions.push(subscription);
+    }
+
+    unsubscribe() {
+        for (const subscription of this.subscriptions) {
+            subscription.unsubscribe();
+        }
+    }
+}
+
 export interface Get {
     <T> (drop: Store<T>) : T
 }
@@ -56,24 +74,25 @@ export const join = <R>(join: (get: Get) => R): Store<R> => {
     return new ReadStore<R>(observer => {
         let areAllSubscribersInitialized = false;
         const values = [];
-        const subscriptions: Subscription[] = [];
+        const subscriptions = new MultiSubscription();
         let index = 0;
         const get = <Q>(s: Subscribable<Q>) => {
             const currentIndex = index++;
             if(!areAllSubscribersInitialized){
-                subscriptions[currentIndex] = s.subscribe( val => {
+                const subscription = s.subscribe( val => {
                     values[currentIndex] = val;
                     if(areAllSubscribersInitialized) {
                         index = 0;
                         observer(join(get))
                     }
                 });
+                subscriptions.add(subscription);
             }
             return values[currentIndex];
         }
         observer(join(get))
         areAllSubscribersInitialized = true;
-        return {unsubscribe : () => subscriptions.forEach( sub => sub.unsubscribe()) };
+        return subscriptions;
     })
 }
 export const store = <T>(defaultValue: T): WriteStore<T> => {
