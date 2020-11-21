@@ -5,7 +5,41 @@ import {calcArraySum, isNodeArray, isString, isSubscribable} from "./utils";
 interface ChildInfo {
     domElement: Node;
     subscription?: Subscription;
-    nestedList?: ChildInfo[];
+}
+
+
+export class ChildGroup {
+    childInfos: ChildInfo[];
+
+    constructor(nodes: null | VNode | VNode[]) {
+        this.childInfos = [];
+        if(!nodes) {
+            // do nothing
+        } else if(isNodeArray(nodes)) {
+            for (const node of nodes) {
+                this.childInfos.push(createDomElement(node))
+            }
+        } else {
+            this.childInfos.push(createDomElement(nodes))
+        }
+    }
+
+    createFragment(){
+        const fragment = document.createDocumentFragment();
+        this.childInfos.forEach( c => fragment.appendChild(c.domElement));
+        return fragment;
+    }
+
+    size(){
+        return this.childInfos.length;
+    }
+
+    remove(parentNode: Node) {
+        for (const childInfo of this.childInfos) {
+            childInfo.subscription.unsubscribe();
+            parentNode.removeChild(childInfo.domElement);
+        }
+    }
 }
 
 const createDomElement = (node: VNode): ChildInfo => {
@@ -32,69 +66,32 @@ const createDomElement = (node: VNode): ChildInfo => {
         }
     }
     if(node.children) {
-        const childInfos: {[order: number]: ChildInfo} = {};
+        const childGroups: {[order: number]: ChildGroup} = {};
         const childSizes: number[] = [];
         for (let i = 0; i < node.children.length; i++) {
             let child = node.children[i];
             if(isSubscribable(child)) {
                 childSizes[i] = 0;
                 const subscription = child.subscribe(newChild => {
-                    const prevChildInfo = childInfos[i];
-                    if(!newChild) { // if null
-                        childSizes[i] = 0;
-                        if(prevChildInfo != null) {
-                            prevChildInfo.subscription?.unsubscribe();
-                            domElement.removeChild(prevChildInfo.domElement);
-                        }
-                        return;
-                    }
 
-                    if(isNodeArray(newChild)) {
-                        let position = calcArraySum(childSizes, i);
-                        const fragment = document.createDocumentFragment();
-                        newChild.forEach( c => {
-                            const childInfo = createDomElement(c);
-                            subscriptions.add(childInfo.subscription);
-                            fragment.appendChild(childInfo.domElement)
-                        });
+                    // clean up old if exist
+                    childGroups[i]?.remove(domElement);
 
-                        if (prevChildInfo) {
-                           prevChildInfo.subscription?.unsubscribe();
-                           prevChildInfo.nestedList.forEach( c => {
-                               c.subscription?.unsubscribe();
-                               domElement.removeChild(c.domElement)
-                           } );
-                            const prevNode = domElement.childNodes[position-1];
-                            const next = prevNode.nextSibling
-                            domElement.insertBefore(fragment, next);
-                        } else {
-                            const prevNode = domElement.childNodes[position-1];
-                            const next = prevNode.nextSibling
-                            domElement.insertBefore(fragment, next);
-                        }
-                        childSizes[i] = newChild.length;
-                        return;
-                    }
-                    const newChildInfo = createDomElement(newChild);
-                    if(prevChildInfo) {
-                        prevChildInfo.subscription.unsubscribe();
-                        domElement.replaceChild(newChildInfo.domElement, prevChildInfo.domElement);
+                    let position = calcArraySum(childSizes, i);
+                    const childGroup = new ChildGroup(newChild);
+
+                    if (position == 0) {
+                        domElement.prepend(childGroup.createFragment());
                     } else {
-                        let position = calcArraySum(childSizes, i);
-                        if (position == 0) {
-                            domElement.prepend(newChildInfo.domElement);
-                        } else {
-                            const prevNode = domElement.childNodes[position-1];
-                            const next = prevNode.nextSibling
-                            domElement.insertBefore(newChildInfo.domElement, next);
-                        }
+                        const prevNode = domElement.childNodes[position-1];
+                        const next = prevNode.nextSibling
+                        domElement.insertBefore(childGroup.createFragment(), next);
                     }
-                    childInfos[i] = newChildInfo;
-                    childSizes[i] = 1;
+                    childGroups[i] = childGroup;
+                    childSizes[i] = childGroup.size();
                 })
                 subscriptions.add(subscription);
             } else if(isNodeArray(child)) {
-                childSizes[i] = child.length;
                 const fragment = document.createDocumentFragment();
                 child.forEach( subChild => {
                     const childInfo = createDomElement(subChild);
@@ -102,6 +99,7 @@ const createDomElement = (node: VNode): ChildInfo => {
                     fragment.appendChild(childInfo.domElement);
                 })
                 domElement.appendChild(fragment);
+                childSizes[i] = child.length;
             } else {
                 const childInfo = createDomElement(child);
                 subscriptions.add(childInfo.subscription);

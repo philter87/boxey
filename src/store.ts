@@ -17,6 +17,10 @@ export class MultiSubscription implements Subscription {
         this.subscriptions.push(subscription);
     }
 
+    size(): number{
+        return this.subscriptions.length;
+    }
+
     unsubscribe() {
         for (const subscription of this.subscriptions) {
             subscription.unsubscribe();
