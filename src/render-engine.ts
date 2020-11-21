@@ -39,15 +39,24 @@ const createDomElement = (node: VNode): ChildInfo => {
             if(isSubscribable(child)) {
                 childSizes[i] = 0;
                 const subscription = child.subscribe(newChild => {
+                    const prevChildInfo = childInfos[i];
                     if(!newChild) { // if null
                         childSizes[i] = 0;
+                        if(prevChildInfo != null) {
+                            prevChildInfo.subscription?.unsubscribe();
+                            domElement.removeChild(prevChildInfo.domElement);
+                        }
                         return;
                     }
-                    const prevChildInfo = childInfos[i];
 
                     if(isNodeArray(newChild)) {
                         let position = calcArraySum(childSizes, i);
                         const fragment = document.createDocumentFragment();
+                        newChild.forEach( c => {
+                            const childInfo = createDomElement(c);
+                            subscriptions.push(childInfo.subscription);
+                            fragment.appendChild(childInfo.domElement)
+                        });
 
                         if (prevChildInfo) {
                            prevChildInfo.subscription?.unsubscribe();
@@ -55,9 +64,13 @@ const createDomElement = (node: VNode): ChildInfo => {
                                c.subscription?.unsubscribe();
                                domElement.removeChild(c.domElement)
                            } );
-
+                            const prevNode = domElement.childNodes[position-1];
+                            const next = prevNode.nextSibling
+                            domElement.insertBefore(fragment, next);
                         } else {
-
+                            const prevNode = domElement.childNodes[position-1];
+                            const next = prevNode.nextSibling
+                            domElement.insertBefore(fragment, next);
                         }
                         childSizes[i] = newChild.length;
                         return;
@@ -89,7 +102,7 @@ const createDomElement = (node: VNode): ChildInfo => {
                     fragment.appendChild(childInfo.domElement);
                 })
                 domElement.appendChild(fragment);
-            } else { // isArray
+            } else {
                 const childInfo = createDomElement(child);
                 subscriptions.push(childInfo.subscription);
                 domElement.appendChild(childInfo.domElement);

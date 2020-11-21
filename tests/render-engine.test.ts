@@ -175,7 +175,7 @@ describe('render-engine', () => {
         show$.set(true);
         assert.equal(target.children[1].tagName, 'DIV');
     })
-    it('allow second child to be null', () => {
+    it('allow third child to be null', () => {
         const show$ = store(false);
         const node = div(
             a(),
@@ -188,6 +188,19 @@ describe('render-engine', () => {
         assert.equal(target.childNodes.length, 2);
         show$.set(true);
         assert.equal(target.children[2].tagName, 'DIV');
+    })
+    it('from div to null', () => {
+        const show$ = store(true);
+        const height$ = store('100px');
+        const node = div(
+            show$.map( show => show ? div({style: {height: height$}}) : null),
+        )
+
+        const target = render(node);
+        show$.set(false);
+
+        assert.equal(height$.getSubscriberCount(), 0);
+        assert.equal(target.children.length, 0);
     })
     it('text nodes allow null', () => {
         const text$ = store<string | null>(null);
@@ -222,5 +235,39 @@ describe('render-engine', () => {
         const target = render(node);
 
         assert.equal(target.innerHTML, "ABCDE")
+    })
+    it('dot list', () => {
+        const divs = store([div(), div(), div()]);
+        const node = div([
+            a(),
+            divs,
+            a()
+        ]);
+
+        const target = render(node);
+
+        assert.equal(target.children.length, 5);
+        assert.equal(target.children[0].tagName, 'A')
+        assert.equal(target.children[1].tagName, 'DIV')
+        assert.equal(target.children[2].tagName, 'DIV')
+        assert.equal(target.children[3].tagName, 'DIV')
+        assert.equal(target.children[4].tagName, 'A')
+    })
+    it('dot list', () => {
+        const nodes$ = store([div(), div(), div()]);
+        const node = div([
+            a(),
+            nodes$,
+            a()
+        ]);
+
+        const target = render(node);
+        nodes$.set([span(), span()])
+
+        assert.equal(target.children.length, 4);
+        assert.equal(target.children[0].tagName, 'A')
+        assert.equal(target.children[1].tagName, 'SPAN')
+        assert.equal(target.children[2].tagName, 'SPAN')
+        assert.equal(target.children[4].tagName, 'A')
     })
 })
