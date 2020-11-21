@@ -1,5 +1,5 @@
 import {describe} from "mocha";
-import {a, div, span, VElement} from "../src/VNodes";
+import {a, button, div, h1, p, span, VElement} from "../src/VNodes";
 import { JSDOM } from 'jsdom'
 import { assert } from "chai";
 import {store} from "../src/store";
@@ -132,6 +132,7 @@ describe('render-engine', () => {
         show.set(false);
         assert.equal(target.children[1].tagName, 'SPAN');
     })
+
     it('child with subscriptions is replaced by one without', () => {
         const show$ = store(true);
         const str$ = store("Hello World");
@@ -145,6 +146,16 @@ describe('render-engine', () => {
 
         show$.set(false);
         assert.equal(str$.getSubscriberCount(), 0);
+        assert.equal(height$.getSubscriberCount(), 0);
+    })
+    it('child with subscriptions is replaced', () => {
+        const show$ = store(true);
+        const height$ = store('100px');
+        const node = div(show$.map( show => show ? div(div({style: {height: height$}})): span()))
+
+        render(node);
+
+        show$.set(false);
         assert.equal(height$.getSubscriberCount(), 0);
     })
     it('allow first child to be null', () => {
@@ -253,7 +264,7 @@ describe('render-engine', () => {
         assert.equal(target.children[3].tagName, 'DIV')
         assert.equal(target.children[4].tagName, 'A')
     })
-    it('dot list', () => {
+    it('a dynamic list', () => {
         const nodes$ = store([div(), div(), div()]);
         const node = div([
             a(),
@@ -269,5 +280,25 @@ describe('render-engine', () => {
         assert.equal(target.children[1].tagName, 'SPAN')
         assert.equal(target.children[2].tagName, 'SPAN')
         assert.equal(target.children[3].tagName, 'A')
+    })
+    it('three dynamic lists', () => {
+        const nodes$1 = store([div(),div()]);
+        const nodes$2 = store([a(), a(), a()]);
+        const nodes$3 = store([span(), span(), span()]);
+        const node = div([
+            nodes$1,
+            nodes$2,
+            nodes$3,
+        ]);
+
+        const target = render(node);
+        nodes$3.set([h1()])
+        nodes$2.set([p()])
+        nodes$1.set([button()])
+
+        assert.equal(target.children.length, 3);
+        assert.equal(target.children[0].tagName, 'BUTTON')
+        assert.equal(target.children[1].tagName, 'P')
+        assert.equal(target.children[2].tagName, 'H1')
     })
 })

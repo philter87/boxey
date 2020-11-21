@@ -73,7 +73,6 @@ const createDomElement = (node: VNode): ChildInfo => {
             if(isSubscribable(child)) {
                 childSizes[i] = 0;
                 const subscription = child.subscribe(newChild => {
-
                     // clean up old if exist
                     childGroups[i]?.remove(domElement);
 
@@ -91,20 +90,11 @@ const createDomElement = (node: VNode): ChildInfo => {
                     childSizes[i] = childGroup.size();
                 })
                 subscriptions.add(subscription);
-            } else if(isNodeArray(child)) {
-                const fragment = document.createDocumentFragment();
-                child.forEach( subChild => {
-                    const childInfo = createDomElement(subChild);
-                    subscriptions.add(childInfo.subscription);
-                    fragment.appendChild(childInfo.domElement);
-                })
-                domElement.appendChild(fragment);
-                childSizes[i] = child.length;
             } else {
-                const childInfo = createDomElement(child);
-                subscriptions.add(childInfo.subscription);
-                domElement.appendChild(childInfo.domElement);
-                childSizes[i] = 1;
+                const childGroup = new ChildGroup(child);
+                domElement.appendChild(childGroup.createFragment());
+                childGroup.childInfos.forEach( ci => subscriptions.add(ci.subscription));
+                childSizes[i] = childGroup.size();
             }
         }
     }
