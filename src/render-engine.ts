@@ -1,48 +1,14 @@
 import {VElement, VNode} from "./VNodes";
 import {MultiSubscription, Subscription} from "./store";
-import {calcArraySum, isNodeArray, isString, isSubscribable} from "./utils";
+import {calcArraySum, isString, isSubscribable} from "./utils";
+import {ChildGroup} from "./child-group";
 
-interface ChildInfo {
+export interface ChildInfo {
     domElement: Node;
     subscription?: Subscription;
 }
 
-
-export class ChildGroup {
-    childInfos: ChildInfo[];
-
-    constructor(nodes: null | VNode | VNode[]) {
-        this.childInfos = [];
-        if(!nodes) {
-            // do nothing
-        } else if(isNodeArray(nodes)) {
-            for (const node of nodes) {
-                this.childInfos.push(createDomElement(node))
-            }
-        } else {
-            this.childInfos.push(createDomElement(nodes))
-        }
-    }
-
-    createFragment(){
-        const fragment = document.createDocumentFragment();
-        this.childInfos.forEach( c => fragment.appendChild(c.domElement));
-        return fragment;
-    }
-
-    size(){
-        return this.childInfos.length;
-    }
-
-    remove(parentNode: Node) {
-        for (const childInfo of this.childInfos) {
-            childInfo.subscription.unsubscribe();
-            parentNode.removeChild(childInfo.domElement);
-        }
-    }
-}
-
-const createDomElement = (node: VNode): ChildInfo => {
+export const createDomElement = (node: VNode): ChildInfo => {
     if (isString(node)) {
         return {domElement: document.createTextNode(node)}
     }
@@ -93,7 +59,7 @@ const createDomElement = (node: VNode): ChildInfo => {
             } else {
                 const childGroup = new ChildGroup(child);
                 domElement.appendChild(childGroup.createFragment());
-                childGroup.childInfos.forEach( ci => subscriptions.add(ci.subscription));
+                childGroup.subscriptions.forEach( s => subscriptions.add(s));
                 childSizes[i] = childGroup.size();
             }
         }
