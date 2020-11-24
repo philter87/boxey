@@ -1,11 +1,6 @@
-
-import {store} from "./store";
-import {a, button, div, h1, n} from "./VNodes";
+import {div, h1} from "./VNodes";
 import {dotRender} from "./render-engine";
-import {Route, Router} from "./router";
-
-const message = store("Hello World");
-const MESSAGE = message.map(v => v.toUpperCase());
+import {Router} from "./router";
 
 const router = new Router();
 const nav = div(

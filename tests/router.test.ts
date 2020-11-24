@@ -8,7 +8,7 @@ import {initDomMock, render} from "./dom-mock";
 const HOST_NAME = "www.page.org";
 const PROTO = "https:"
 const ROUTE = "/a/sub-route";
-const LOCATION: Location = {hostName: HOST_NAME, route: ROUTE, queryParams: {}};
+const LOCATION: Location = {path: ROUTE, queryParams: {}};
 
 initDomMock();
 
@@ -22,8 +22,7 @@ describe('router', () => {
 
         const routeSnap = router.getSnapshot();
 
-        assert.equal(routeSnap.hostName, HOST_NAME);
-        assert.equal(routeSnap.route, ROUTE);
+        assert.equal(routeSnap.path, ROUTE);
         assert.deepEqual(routeSnap.queryParams, {a: '1', b: '2'});
     })
     it('navigate', () => {
@@ -31,14 +30,14 @@ describe('router', () => {
 
         router.navigate("/somewhere-else");
 
-        assert.deepEqual(router.getSnapshot(), {hostName: HOST_NAME, route: "/somewhere-else", queryParams: {}})
+        assert.deepEqual(router.getSnapshot(), {path: "/somewhere-else", queryParams: {}})
     })
     it('navigate with queryParams', () => {
         const router = new Router(url.parse("https://www.page.org/a/something?a=1&b=2"));
 
         router.navigate("/here", {queryParams: {x: 'y'}});
 
-        assert.deepEqual(router.getSnapshot(), {hostName: HOST_NAME, route: "/here", queryParams: {x: 'y'}})
+        assert.deepEqual(router.getSnapshot(), {path: "/here", queryParams: {x: 'y'}})
     })
     it('routes by matching paths', () => {
         const nodes = [];

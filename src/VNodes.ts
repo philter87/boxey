@@ -1,11 +1,11 @@
-import {Store, Subscribable} from "./store";
+import {Subscribable} from "./store";
 import {isArray, isElement, isString, isSubscribable} from "./utils";
 
 type CssKey = keyof CSSStyleDeclaration;
 
 
 type CssStyle = {
-    [key in CssKey]?: Store<string> | string;
+    [key in CssKey]?: Subscribable<string> | string;
 };
 
 export interface AnchorAttributes extends NodeAttributes {

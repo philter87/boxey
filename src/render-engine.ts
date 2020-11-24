@@ -98,8 +98,7 @@ export const createDomElement = (node: VNode): ChildInfo => {
             }
         }
     }
-    const subscription = multiSubscription(subscriptions);
-    return {domElement, subscription};
+    return {domElement, subscription: multiSubscription(subscriptions)};
 }
 
 export const dotRender = (node: VElement, target: HTMLElement) => {

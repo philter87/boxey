@@ -1,5 +1,5 @@
 
-import {Store, store, Subscribable, WriteStore} from "./store";
+import {store, Subscribable, WriteStore} from "./store";
 import {AnchorAttributes, Child, n, NodeAttributes, VNode} from "./VNodes";
 import {UrlWithStringQuery} from "url";
 import {isBrowser} from "./utils";
@@ -10,9 +10,8 @@ export interface Route {
 }
 
 export interface Location {
-    hostName: string;
     queryParams: {[name: string] : string};
-    route: string;
+    path: string;
 }
 
 export interface RouteOptions {
@@ -43,20 +42,19 @@ export class Router {
         }
     }
 
-    private getLocation(l: UrlWithStringQuery | globalThis.Location) {
-        return { hostName: l.hostname,  route: l.pathname,  queryParams: parseQueryString(l.search)}
+    private getLocation(l: UrlWithStringQuery | globalThis.Location): Location {
+        return { path: l.pathname,  queryParams: parseQueryString(l.search)}
     }
 
     navigate(route: string, opt: RouteOptions = {queryParams: {}}){
-        this._location.update(l => ({...l, route, queryParams: opt.queryParams}));
+        this._location.update(l => ({...l, path: route, queryParams: opt.queryParams}));
         if (isBrowser()) {
             window.history.pushState({}, route, window.location.origin + route);
         }
     }
 
-    findRoute(location: Location, routes: Route[]): Route {
-        const matchedRoute = routes.find( r => r.path == location.route);
-        return matchedRoute || routes[0];
+    private findRoute(location: Location, routes: Route[]): Route {
+        return routes.find( r => r.path == location.path) || routes[0];
     }
 
     routes(...routes: Route[]): Subscribable<VNode | VNode[]> {

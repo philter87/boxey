@@ -6,7 +6,7 @@ export interface Subscription {
     unsubscribe();
 }
 
-//4368 --> 4256 --> 4143
+//4368 --> 4256 --> 4143 --> 4076
 
 export const multiSubscription = (subscribtions: Subscription[]): Subscription => {
     if(subscribtions.length == 0) return undefined;
@@ -21,31 +21,13 @@ export interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Subscription;
 }
 
-export interface Store<T> extends Subscribable<T>{
-    map<R>(mapperFunction: (value: T) => R);
-    pick(key: keyof T);
-    snapshot(): T;
-}
-
-const mapFunc = <T,R>(source: Subscribable<T>, mapperFunction: (value: T) => R) => {
-    return new ReadStore<R>(subscriber => {
-        return source.subscribe( val => subscriber(mapperFunction(val)))
-    })
-}
-
-class ReadStore<T> implements Subscribable<T> {
-    private _subscribe: (subscriber: Subscriber<T>) => Subscription;
-
-    constructor( subscribe: (subscriber: Subscriber<T>) => Subscription) {
-        this._subscribe = subscribe;
-    }
-
-    subscribe(subscriber: Subscriber<T>): Subscription {
-        return this._subscribe(subscriber);
-    }
+export abstract class Store<T> implements Subscribable<T>{
+    abstract subscribe(subscriber: Subscriber<T>): Subscription;
 
     map<R>(mapperFunction: (value: T) => R) {
-        return mapFunc(this, mapperFunction);
+        return new ReadStore<R>(subscriber => {
+            return this.subscribe( val => subscriber(mapperFunction(val)))
+        })
     }
 
     pick(key: keyof T) {
@@ -56,6 +38,20 @@ class ReadStore<T> implements Subscribable<T> {
         let value;
         this.subscribe(v => value = v).unsubscribe();
         return value;
+    }
+}
+
+
+class ReadStore<T> extends Store<T> {
+    private _subscribe: (subscriber: Subscriber<T>) => Subscription;
+
+    constructor( subscribe: (subscriber: Subscriber<T>) => Subscription) {
+        super();
+        this._subscribe = subscribe;
+    }
+
+    subscribe(subscriber: Subscriber<T>): Subscription {
+        return this._subscribe(subscriber);
     }
 }
 
@@ -88,11 +84,12 @@ export const store = <T>(defaultValue: T): WriteStore<T> => {
     return new WriteStore(defaultValue);
 }
 
-export class WriteStore<T> implements Subscribable<T> {
+export class WriteStore<T> extends Store<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 
     constructor(value: T) {
+        super();
         this.value = value;
         this.subscribers = [];
     }
@@ -116,18 +113,6 @@ export class WriteStore<T> implements Subscribable<T> {
 
     update(updateFunction: (currentValue: T) => T) {
         this.set(updateFunction(this.value))
-    }
-
-    map<R>(mapperFunction: (value: T) => R) {
-        return mapFunc(this, mapperFunction);
-    }
-
-    pick(key: keyof T) {
-        return this.map(o => o[key]);
-    }
-
-    snapshot(): T {
-        return this.value;
     }
 
     getSubscriberCount(): number {
