@@ -6,26 +6,11 @@ export interface Subscription {
     unsubscribe();
 }
 
-export class MultiSubscription implements Subscription {
-    private readonly subscriptions: Subscription[];
+//4368 --> 4256
 
-    constructor(){
-        this.subscriptions = [];
-    }
-
-    add(subscription: Subscription) {
-        this.subscriptions.push(subscription);
-    }
-
-    size(): number{
-        return this.subscriptions.length;
-    }
-
-    unsubscribe() {
-        for (const subscription of this.subscriptions) {
-            subscription.unsubscribe();
-        }
-    }
+export const multiSubscription = (subscribtions: Subscription[]): Subscription => {
+    if(subscribtions.length == 0) return undefined;
+    return {unsubscribe: () => subscribtions.forEach( s => s.unsubscribe())};
 }
 
 export interface Get {
@@ -78,7 +63,7 @@ export const join = <R>(join: (get: Get) => R): Store<R> => {
     return new ReadStore<R>(observer => {
         let areAllSubscribersInitialized = false;
         const values = [];
-        const subscriptions = new MultiSubscription();
+        const subscriptions: Subscription[] = [];
         let index = 0;
         const get = <Q>(s: Subscribable<Q>) => {
             const currentIndex = index++;
@@ -90,20 +75,20 @@ export const join = <R>(join: (get: Get) => R): Store<R> => {
                         observer(join(get))
                     }
                 });
-                subscriptions.add(subscription);
+                subscriptions.push(subscription);
             }
             return values[currentIndex];
         }
         observer(join(get))
         areAllSubscribersInitialized = true;
-        return subscriptions;
+        return multiSubscription(subscriptions);
     })
 }
 export const store = <T>(defaultValue: T): WriteStore<T> => {
     return new WriteStore(defaultValue);
 }
 
-class WriteStore<T> implements Subscribable<T> {
+export class WriteStore<T> implements Subscribable<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 
@@ -142,9 +127,7 @@ class WriteStore<T> implements Subscribable<T> {
     }
 
     snapshot(): T {
-        let value;
-        this.subscribe(v => value = v).unsubscribe();
-        return value;
+        return this.value;
     }
 
     getSubscriberCount(): number {

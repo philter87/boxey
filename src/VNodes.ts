@@ -8,6 +8,10 @@ type CssStyle = {
     [key in CssKey]?: Store<string> | string;
 };
 
+export interface AnchorAttributes extends NodeAttributes {
+    href?: string;
+}
+
 export interface NodeAttributes extends Partial<GlobalEventHandlers> {
     style?: CssStyle;
     class?: string;

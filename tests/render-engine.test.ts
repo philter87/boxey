@@ -1,28 +1,11 @@
 import {describe} from "mocha";
 import {a, button, div, h1, p, span, VElement} from "../src/VNodes";
-import { JSDOM } from 'jsdom'
 import { assert } from "chai";
 import {store} from "../src/store";
-import {dotRender} from "../src/render-engine";
+import {initDomMock, render} from "./dom-mock";
 
-declare global {
-    namespace NodeJS {
-        interface Global {
-            document: Document;
-            window: Window;
-            navigator: Navigator;
-        }
-    }
-}
-
-const { window } = new JSDOM('<!doctype html><html><body></body></html>');
-global.document = window.document;
-// global.window = global.document.defaultView;
-
-const render = (node: VElement) => {
-    const target = dotRender(node, document.createElement('div'))
-    return target.firstChild as HTMLElement;
-}
+// mocking document with jsdom
+initDomMock();
 
 describe('render-engine', () => {
     it('mock-document', () => {

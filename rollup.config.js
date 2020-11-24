@@ -17,9 +17,9 @@ export default {
     format: 'cjs',
   },
   plugins: [
-      typescript(),
+      typescript({target: "es6"}),
       copy({targets: [{src:'static/index.html', dest: 'dist'}]}),
-      serve(OUTPUT_FOLDER),
+      serve({contentBase: OUTPUT_FOLDER, historyApiFallback: true}),
       livereload(OUTPUT_FOLDER),
       terser()
   ],
