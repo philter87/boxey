@@ -9,9 +9,9 @@ const MESSAGE = message.map(v => v.toUpperCase());
 
 const router = new Router();
 const nav = div(
-    router.a("/", {}, "Home"),
-    router.a("/about", {}, "About"),
-    router.a("/contact", {}, "Contact")
+    router.a("/", {}, "Home "),
+    router.a("/about", {}, "About "),
+    router.a("/contact", {}, "Contact ")
 )
 
 const routes = router.routes(

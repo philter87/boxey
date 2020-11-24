@@ -6,7 +6,7 @@ export interface Subscription {
     unsubscribe();
 }
 
-//4368 --> 4256
+//4368 --> 4256 --> 4143
 
 export const multiSubscription = (subscribtions: Subscription[]): Subscription => {
     if(subscribtions.length == 0) return undefined;

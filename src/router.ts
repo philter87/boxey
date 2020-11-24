@@ -1,7 +1,8 @@
 
-import {store, Subscribable, WriteStore} from "./store";
+import {Store, store, Subscribable, WriteStore} from "./store";
 import {AnchorAttributes, Child, n, NodeAttributes, VNode} from "./VNodes";
 import {UrlWithStringQuery} from "url";
+import {isBrowser} from "./utils";
 
 export interface Route {
     path: string;
@@ -30,45 +31,36 @@ function parseQueryString(search: string) {
 }
 
 export class Router {
-    private location: Location = {hostName: "", queryParams: {}, route: ""};
-    private _routes: Route[];
-    private _currentRoute: WriteStore<Route>;
+    private _location: WriteStore<Location>;
 
     constructor(location?: UrlWithStringQuery | globalThis.Location) {
-        if(!location) {
-            location = window.location;
+        this._location = store(this.getLocation(location || window.location));
+
+        if(isBrowser()) {
+            window.onpopstate = () => {
+                this._location.set(this.getLocation(window.location))
+            }
         }
-        this._routes = [];
-        this._currentRoute = store({path:"", node: null});
-        this.location = {
-            hostName: location.hostname,
-            route: location.pathname,
-            queryParams: parseQueryString(location.search)
-        }
+    }
+
+    private getLocation(l: UrlWithStringQuery | globalThis.Location) {
+        return { hostName: l.hostname,  route: l.pathname,  queryParams: parseQueryString(l.search)}
     }
 
     navigate(route: string, opt: RouteOptions = {queryParams: {}}){
-        const matchedRoute = this._routes.filter( r => route == r.path);
-        if (matchedRoute) {
-            if(typeof window !== 'undefined') {
-                window.history.pushState({}, route, window.location.origin + route);
-            }
-            this.location = {route, hostName: this.location.hostName, queryParams: opt.queryParams}
-            this._currentRoute.set(matchedRoute[0]);
-        } else {
-            this._currentRoute.set(this._routes[0]);
+        this._location.update(l => ({...l, route, queryParams: opt.queryParams}));
+        if (isBrowser()) {
+            window.history.pushState({}, route, window.location.origin + route);
         }
     }
 
+    findRoute(location: Location, routes: Route[]): Route {
+        const matchedRoute = routes.find( r => r.path == location.route);
+        return matchedRoute || routes[0];
+    }
+
     routes(...routes: Route[]): Subscribable<VNode | VNode[]> {
-        this._currentRoute.set(routes[0]);
-        routes.forEach( r => {
-            this._routes.push(r);
-            if(r.path === this.location.route ) {
-                this._currentRoute.set(r);
-            }
-        })
-        return this._currentRoute.map( r => r.node);
+        return this._location.map(l => this.findRoute(l, routes).node);
     }
 
     a(route: string, attr?: AnchorAttributes, ...children: Child[]): VNode{
@@ -80,6 +72,6 @@ export class Router {
     }
 
     getSnapshot() {
-        return this.location;
+        return this._location.snapshot();
     }
 }
