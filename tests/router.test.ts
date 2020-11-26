@@ -1,6 +1,6 @@
 import * as url from "url";
 import {describe} from "mocha";
-import {Location, Router} from "../src/router";
+import {parseUrl, Router, Url} from "../src/router";
 import {assert} from "chai";
 import {div} from "../src/VNodes";
 import {initDomMock, render} from "./dom-mock";
@@ -8,11 +8,11 @@ import {initDomMock, render} from "./dom-mock";
 const HOST_NAME = "www.page.org";
 const PROTO = "https:"
 const ROUTE = "/a/sub-route";
-const LOCATION: Location = {path: ROUTE, queryParams: {}};
+const LOCATION: Url = {path: ROUTE, queryParams: {}};
 
 initDomMock();
 
-export const createLoc = (loc: Partial<Location>) => {
+export const createLoc = (loc: Partial<Url>) => {
     return {...LOCATION, ...loc}
 }
 
@@ -30,14 +30,18 @@ describe('router', () => {
 
         router.navigate("/somewhere-else");
 
-        assert.deepEqual(router.getSnapshot(), {path: "/somewhere-else", queryParams: {}})
+        const url0 = router.getSnapshot();
+        assert.equal(url0.path, "/somewhere-else");
+        assert.deepEqual(url0.queryParams, {});
     })
     it('navigate with queryParams', () => {
         const router = new Router(url.parse("https://www.page.org/a/something?a=1&b=2"));
 
         router.navigate("/here", {queryParams: {x: 'y'}});
 
-        assert.deepEqual(router.getSnapshot(), {path: "/here", queryParams: {x: 'y'}})
+        const url0 = router.getSnapshot();
+        assert.equal(url0.path, "/here");
+        assert.deepEqual(url0.queryParams, {x: 'y'});
     })
     it('routes by matching paths', () => {
         const nodes = [];
@@ -88,5 +92,48 @@ describe('router', () => {
         const target = render(div(routes));
 
         assert.equal(target.innerHTML, "About");
+    })
+    it('dynamic route matching', () => {
+        const router = new Router(url.parse("https://www.page.org"));
+        const routes = router.routes(
+            {path: "/", node: "Home"},
+            {path: "/bla", node: "Bla"},
+            {path: "/page/:id", node: "Page"},
+        );
+
+        router.navigate("/page/1234");
+
+        assert.exists(router.getSnapshot().matchedRoute.node);
+    })
+})
+
+const routes = [
+    {path: "/", node: "Home"},
+    {path: "/bla", node: "Bla"},
+    {path: "/article/:articleId", node: "Article"},
+    {path: "/page/:pageId/blog/:blogId", node: "Blog"},
+    {path: "/page/:pageId", node: "Page"},
+
+]
+
+describe('route pattern matching', () => {
+    it('exact route matching', () => {
+        // assert.equal(matchRoute(routes, "/").matchedRoute.node, "Home");
+        assert.equal(parseUrl(routes, "/bla").matchedRoute.node, "Bla");
+    })
+    it('dynamic matching. page', () => {
+        const pageRoute = parseUrl(routes, "/page/abcd");
+        assert.equal(pageRoute.matchedRoute.node, "Page");
+        assert.deepEqual(pageRoute.pathParams, {pageId: "abcd"});
+    })
+    it('dynamic matching. article', () => {
+        const articleRoute = parseUrl(routes, "/article/1234");
+        assert.deepEqual(articleRoute.matchedRoute.node, "Article");
+        assert.deepEqual(articleRoute.pathParams, {articleId: "1234"});
+    })
+    it('dynamic matching. nested blog under page', () => {
+        const blogRoute = parseUrl(routes, "/page/abc/blog/1234");
+        assert.deepEqual(blogRoute.matchedRoute.node, "Blog");
+        assert.deepEqual(blogRoute.pathParams, {pageId: "abc", blogId: "1234"});
     })
 })

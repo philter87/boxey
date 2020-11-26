@@ -1,6 +1,5 @@
-
 import {store, Subscribable, WriteStore} from "./store";
-import {AnchorAttributes, Child, n, NodeAttributes, VNode} from "./VNodes";
+import {AnchorAttributes, Child, n, VNode} from "./VNodes";
 import {UrlWithStringQuery} from "url";
 import {isBrowser} from "./utils";
 
@@ -9,56 +8,88 @@ export interface Route {
     node: VNode | VNode[];
 }
 
-export interface Location {
-    queryParams: {[name: string] : string};
+export interface Url {
     path: string;
+    queryParams: {[name: string] : string};
+    pathParams?:  {[name: string] : string};
+    matchedRoute?: Route;
 }
+
+const UNMATCH_ROUTE: Route = {path: '', node: null};
 
 export interface RouteOptions {
     queryParams?: {[name: string] : string};
 }
 
 function parseQueryString(search: string) {
-    if(!search) return {};
-    const queryStatements = search.substr(1).split("&");
-    const query = {};
-    queryStatements.forEach( statement => {
-        const kv = statement.split("=");
-        query[kv[0]] = kv[1];
-    })
-    return query;
+    const params: {[name: string] : string} = {};
+    if(!search) return params;
+    new URLSearchParams(search.substr(1))
+        .forEach( (v,k) => params[k] = v);
+    return params;
+}
+
+export const parseUrl = (routes: Route[], path: string): Partial<Url> => {
+    for (const route of routes) {
+        if (route.path == path) {
+            return {matchedRoute: route};
+        }
+        const pathParts = path.split("/");
+        const routePatterns = route.path.split("/");
+        if (pathParts.length != routePatterns.length) {
+            continue;
+        }
+        const pathParams: {[name: string] : string} = {};
+        let isMatched = true;
+        for (let i = 0; i < pathParts.length; i++) {
+            let routePattern = routePatterns[i];
+            let pathPart = pathParts[i];
+            if(routePattern.startsWith(":")) {
+                pathParams[routePattern.substr(1)] = pathPart;
+            } else if (routePattern !== pathPart) {
+                isMatched = false;
+            }
+        }
+        if(isMatched) {
+            return {matchedRoute: route, pathParams};
+        }
+    }
+    return {matchedRoute: UNMATCH_ROUTE};
 }
 
 export class Router {
-    private _location: WriteStore<Location>;
+    private _url: WriteStore<Url>;
+    private _routes: Route[];
 
     constructor(location?: UrlWithStringQuery | globalThis.Location) {
-        this._location = store(this.getLocation(location || window.location));
-
+        this._routes = [];
+        this._url = store(this.createUrlFromLocation(location || window.location));
         if(isBrowser()) {
             window.onpopstate = () => {
-                this._location.set(this.getLocation(window.location))
+                this._url.set(this.createUrlFromLocation(window.location))
             }
         }
     }
 
-    private getLocation(l: UrlWithStringQuery | globalThis.Location): Location {
-        return { path: l.pathname,  queryParams: parseQueryString(l.search)}
+    private createUrlFromLocation(l: UrlWithStringQuery | globalThis.Location): Url {
+        return this.createUrl(l.pathname, parseQueryString(l.search));
+    }
+
+    private createUrl(path: string, queryParams: {[name: string] : string}): Url {
+        return {...parseUrl(this._routes, path), path, queryParams};
     }
 
     navigate(route: string, opt: RouteOptions = {queryParams: {}}){
-        this._location.update(l => ({...l, path: route, queryParams: opt.queryParams}));
+        this._url.set(this.createUrl(route, opt.queryParams));
         if (isBrowser()) {
             window.history.pushState({}, route, window.location.origin + route);
         }
     }
 
-    private findRoute(location: Location, routes: Route[]): Route {
-        return routes.find( r => r.path == location.path) || routes[0];
-    }
-
     routes(...routes: Route[]): Subscribable<VNode | VNode[]> {
-        return this._location.map(l => this.findRoute(l, routes).node);
+        this._routes = routes;
+        this._url.update( url => this.createUrl(url.path, url.queryParams));
+        return this._url.map( l => l.matchedRoute ? l.matchedRoute.node : null);
     }
 
     a(route: string, attr?: AnchorAttributes, ...children: Child[]): VNode{
@@ -70,6 +101,6 @@ export class Router {
     }
 
     getSnapshot() {
-        return this._location.snapshot();
+        return this._url.snapshot();
     }
 }
