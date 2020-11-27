@@ -113,7 +113,6 @@ const routes = [
     {path: "/article/:articleId", node: "Article"},
     {path: "/page/:pageId/blog/:blogId", node: "Blog"},
     {path: "/page/:pageId", node: "Page"},
-
 ]
 
 describe('route pattern matching', () => {
@@ -136,4 +135,15 @@ describe('route pattern matching', () => {
         assert.deepEqual(blogRoute.matchedRoute.node, "Blog");
         assert.deepEqual(blogRoute.pathParams, {pageId: "abc", blogId: "1234"});
     })
+    it('routing no match', () => {
+        const notValid = parseUrl(routes, "/not-valid-page");
+        assert.isNull(notValid.matchedRoute.node);
+    })
+    it('routing wildcard', () => {
+        const defaultPage = "Wildcard page";
+        const routesWith404 = [...routes, {path: '*', node: defaultPage}];
+        const redirectToDefaultPage = parseUrl(routesWith404, "/not-valid-page");
+        assert.equal(redirectToDefaultPage.matchedRoute.node, defaultPage);
+    })
+
 })

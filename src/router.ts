@@ -30,6 +30,7 @@ function parseQueryString(search: string) {
 }
 
 export const parseUrl = (routes: Route[], path: string): Partial<Url> => {
+    const defaultRoute = routes.find( r => r.path.startsWith("*")) || UNMATCH_ROUTE;
     for (const route of routes) {
         if (route.path == path) {
             return {matchedRoute: route};
@@ -54,7 +55,7 @@ export const parseUrl = (routes: Route[], path: string): Partial<Url> => {
             return {matchedRoute: route, pathParams};
         }
     }
-    return {matchedRoute: UNMATCH_ROUTE};
+    return {matchedRoute: defaultRoute};
 }
 
 export class Router {
