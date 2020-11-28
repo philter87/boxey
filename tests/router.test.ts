@@ -2,7 +2,7 @@ import * as url from "url";
 import {describe} from "mocha";
 import {parseUrl, Router, Url} from "../src/router";
 import {assert} from "chai";
-import {div} from "../src/VNodes";
+import {div} from "../src/vnodes";
 import {initDomMock, render} from "./dom-mock";
 
 const HOST_NAME = "www.page.org";

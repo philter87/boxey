@@ -1,5 +1,5 @@
 import {store, Subscribable, WriteStore} from "./store";
-import {AnchorAttributes, Child, n, VNode} from "./VNodes";
+import {AnchorAttributes, Child, n, VNode} from "./vnodes";
 import {UrlWithStringQuery} from "url";
 import {isBrowser} from "./utils";
 

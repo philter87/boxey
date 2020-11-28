@@ -1,5 +1,5 @@
 import {describe} from "mocha";
-import {a, button, div, h1, p, span, VElement} from "../src/VNodes";
+import {a, button, div, h1, p, span, VElement} from "../src/vnodes";
 import { assert } from "chai";
 import {store} from "../src/store";
 import {initDomMock, render} from "./dom-mock";

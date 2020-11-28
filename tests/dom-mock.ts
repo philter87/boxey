@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom'
-import {VElement} from "../src/VNodes";
+import {VElement} from "../src/vnodes";
 import {dotRender} from "../src/render-engine";
 
 declare global {

@@ -1,4 +1,4 @@
-import {VElement, VNode} from "./VNodes";
+import {VElement, VNode} from "./vnodes";
 import {multiSubscription, Subscription} from "./store";
 import {calcArraySum, isNodeArray, isString, isSubscribable} from "./utils";
 import {ChildInfo} from "./child-info";

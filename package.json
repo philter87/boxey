@@ -1,17 +1,20 @@
 {
-  "name": "typie",
-  "version": "0.0.1",
+  "name": "teststui",
+  "version": "0.0.3",
   "description": "Frontend framework",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "browser": "dist/index.bundle.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "test": "mocha -r ts-node/register tests/**/*.test.ts"
+    "dev": "rollup -w -c dev-rollup.config.js",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "prepublishOnly": "npm run build"
   },
   "author": "Philip HC",
   "license": "ISC",
   "devDependencies": {
-    "@rollup/plugin-typescript": "^6.1.0",
     "@types/chai": "^4.2.14",
     "@types/mocha": "^8.0.3",
     "chai": "^4.2.0",
@@ -24,8 +27,10 @@
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-serve": "^1.1.0",
     "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.29.0",
     "ts-node": "^9.0.0",
     "tslib": "^2.0.3",
     "typescript": "^4.0.5"
-  }
+  },
+  "files": ["dist"]
 }

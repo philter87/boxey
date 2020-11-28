@@ -1,8 +1,6 @@
 // rollup.config.js
-import typescript from '@rollup/plugin-typescript';
-import serve from "rollup-plugin-serve";
-import livereload from "rollup-plugin-livereload";
-import copy from 'rollup-plugin-copy'
+import pkg from './package.json';
+import typescript from 'rollup-plugin-typescript2';
 import { terser } from "rollup-plugin-terser";
 
 export const OUTPUT_FOLDER = 'dist';
@@ -12,15 +10,23 @@ export default {
       include: ['src/**'],
       exclude: './node_modules/**'
   },
-  output: {
-    dir: OUTPUT_FOLDER,
-    format: 'cjs',
-  },
+  output: [
+      {
+          file: pkg.main,
+          format: 'cjs',
+      },
+      {
+          file: pkg.module,
+          format: 'es',
+      },
+      {
+          file: pkg.browser,
+          format: 'iife',
+          name: pkg.name
+      },
+  ],
   plugins: [
-      typescript({target: "es6"}),
-      copy({targets: [{src:'static/index.html', dest: 'dist'}]}),
-      serve({contentBase: OUTPUT_FOLDER, historyApiFallback: true}),
-      livereload(OUTPUT_FOLDER),
-      terser()
+      typescript(),
+      terser({keep_classnames: true, keep_fnames: true})
   ],
 };

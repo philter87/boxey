@@ -1,5 +1,5 @@
 import {Subscribable} from "./store";
-import {VElement, VNode} from "./VNodes";
+import {VElement, VNode} from "./vnodes";
 
 export const isString = (obj: any): obj is string => {
     return 'string' == typeof obj;
