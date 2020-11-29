@@ -1,6 +1,6 @@
 {
-  "name": "teststui",
-  "version": "0.0.3",
+  "name": "spotui",
+  "version": "0.0.4",
   "description": "Frontend framework",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
