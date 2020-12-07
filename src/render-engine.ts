@@ -1,6 +1,6 @@
 import {VElement, VNode} from "./vnodes";
 import {multiSubscription, Subscription} from "./store";
-import {calcArraySum, isNodeArray, isString, isSubscribable} from "./utils";
+import {calcArraySum, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
 import {ChildInfo} from "./child-info";
 
 export class ChildGroup {
@@ -43,8 +43,8 @@ export class ChildGroup {
 }
 
 export const createDomElement = (node: VNode): ChildInfo => {
-    if (isString(node)) {
-        return {domElement: document.createTextNode(node)}
+    if (isString(node) || isNumber(node)) {
+        return {domElement: document.createTextNode(node+"")}
     }
     const domElement = document.createElement(node.tag)
     const subscriptions: Subscription[] = [];

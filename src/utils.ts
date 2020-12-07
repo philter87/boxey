@@ -5,6 +5,10 @@ export const isString = (obj: any): obj is string => {
     return 'string' == typeof obj;
 }
 
+export const isNumber = (obj: any): obj is number => {
+    return 'number' == typeof obj;
+}
+
 export const isArray = (obj: any): obj is [] => {
     return Array.isArray(obj);
 }

@@ -1,5 +1,5 @@
 import {Subscribable} from "./store";
-import {isArray, isElement, isString, isSubscribable} from "./utils";
+import {isArray, isElement, isNumber, isString, isSubscribable} from "./utils";
 
 type CssKey = keyof CSSStyleDeclaration;
 
@@ -24,12 +24,14 @@ export interface VElement {
     children?: Child[];
 }
 
-export type VNode = VElement | string;
+export type VNode = VElement | string | number;
 
 export type Child = VNode | VNode[] | Subscribable<VNode | VNode[] | null>;
 
 function ni(tag: string, args: any[]): VElement {
     if (args.length == 0) return {tag};
+    args = args.map( a => isNumber(a) ? a.toString() : a);
+
     const first = args[0];
     const isChildLike = isElement(first) || isArray(first) || isString(first) || isSubscribable(first);
     if (isChildLike) {

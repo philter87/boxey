@@ -32,6 +32,12 @@ describe('render-engine', () => {
         assert.equal(target.innerHTML, text);
 
     })
+    it('number node', () => {
+        const element = div(1);
+        const target = render(element);
+
+        assert.equal(target.innerHTML, "1");
+    })
     it('initialRender, two div children', () => {
         const elements = div({class: 'root'}, [
             div(['First']),
