@@ -33,10 +33,11 @@ describe('render-engine', () => {
 
     })
     it('number node', () => {
-        const element = div(1);
+        const element = div(1, [2,3], store(4));
+
         const target = render(element);
 
-        assert.equal(target.innerHTML, "1");
+        assert.equal(target.innerHTML, "1234");
     })
     it('initialRender, two div children', () => {
         const elements = div({class: 'root'}, [
