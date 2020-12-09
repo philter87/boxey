@@ -14,6 +14,12 @@ export interface AnchorAttributes extends NodeAttributes {
     href?: string;
 }
 
+type HtmlInputKey = Extract<keyof HTMLInputElement, string>;
+
+type InputAttributes = {
+    [key in HtmlInputKey]?: Subscribable<string> | string;
+}
+
 export interface NodeAttributes extends Partial<GlobalEventHandlers> {
     style?: CssStyle;
     class?: string;
@@ -68,6 +74,13 @@ type TagOverloads = {
     (attributes: NodeAttributes, children: Child[]): VElement;
     (attributes: NodeAttributes, ...children: Child[]): VElement;
 }
+type InputOverloads = {
+    (attributes: InputAttributes): VElement;
+    (children: Child[]): VElement;
+    (...children: Child[]): VElement;
+    (attributes: InputAttributes, children: Child[]): VElement;
+    (attributes: InputAttributes, ...children: Child[]): VElement;
+}
 
 export const a: TagOverloads = nn('a');
 export const b: TagOverloads = nn('b');
@@ -85,7 +98,7 @@ export const h4: TagOverloads = nn('h4');
 export const h5: TagOverloads = nn('h5');
 export const h6: TagOverloads = nn('h6');
 export const img: TagOverloads = nn('img');
-export const input: TagOverloads = nn('input');
+export const input: InputOverloads = nn('input');
 export const label: TagOverloads = nn('label');
 export const legend: TagOverloads = nn('legend');
 export const li: TagOverloads = nn('li');

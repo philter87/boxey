@@ -62,7 +62,13 @@ export const createDomElement = (node: VNode): ChildInfo => {
                 }
             }
         } else {
-            domElement[key] = node.attr[key];
+            const nodeAttr = node.attr[key];
+            if (isSubscribable(nodeAttr)) {
+                subscriptions.push(nodeAttr.subscribe( newVal => domElement[key] = newVal))
+            } else {
+                domElement[key] = nodeAttr
+            }
+
         }
     }
     if(node.children) {

@@ -1,5 +1,5 @@
 import {describe} from "mocha";
-import {a, button, div, h1, p, span, VElement} from "../src/vnodes";
+import {a, button, div, h1, input, p, span, VElement} from "../src/vnodes";
 import { assert } from "chai";
 import {store} from "../src/store";
 import {initDomMock, render} from "./dom-mock";
@@ -290,5 +290,27 @@ describe('render-engine', () => {
         assert.equal(target.children[0].tagName, 'BUTTON')
         assert.equal(target.children[1].tagName, 'P')
         assert.equal(target.children[2].tagName, 'H1')
+    })
+})
+
+describe('tag types', () => {
+    it('input static', () => {
+        const value = "Something";
+        const node = input({value})
+
+        const target = render(node);
+
+        // @ts-ignore
+        assert.equal(target.value, value)
+    })
+    it('input store', () => {
+        const value = store("Something");
+        const node = input({value})
+
+        const target = render(node);
+        value.set("NewValue");
+
+        // @ts-ignore
+        assert.equal(target.value, "NewValue")
     })
 })
