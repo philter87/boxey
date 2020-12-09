@@ -72,3 +72,15 @@ describe('all tags', () => {
         assert.deepEqual(anchor, {tag: 'a', attr: ATTRS, children: CHILDREN})
     })
 })
+
+describe('is custom tag', () => {
+    it('custom tag', () => {
+        const TAG = "span";
+        const CHILD = "Hello World!";
+        const MyComponent = () => n(TAG, CHILD);
+        const result = n(MyComponent)
+        console.log(result);
+        assert.equal(result.tag, TAG);
+        assert.deepEqual(result.children, [CHILD]);
+    })
+})

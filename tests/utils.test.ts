@@ -1,6 +1,6 @@
 import {describe} from "mocha";
 import { assert } from "chai";
-import {calcArraySum, isArray, isElement, isNumber, isString, isSubscribable} from "../src/utils";
+import {calcArraySum, isArray, isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "../src/utils";
 import {store} from "../src/store";
 
 const ARRAY: any[] = ['aString', ['an array'], store(2)];
@@ -54,6 +54,11 @@ describe('utils', () => {
         assert.equal(3, calcArraySum(arr, 2));
         assert.equal(6, calcArraySum(arr, 3));
         assert.equal(10, calcArraySum(arr, 4));
+    })
+    it('isCustomTagFunction', () => {
+        assert.isTrue(isCustomTagFunction(() => {}))
+        assert.isFalse(isCustomTagFunction("bla"))
+        assert.isFalse(isCustomTagFunction(new Date()));
     })
 
 })

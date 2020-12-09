@@ -1,5 +1,5 @@
 import {Subscribable} from "./store";
-import {VElement, VNode} from "./vnodes";
+import {CustomTagFunction, VElement, VNode} from "./vnodes";
 
 export const isString = (obj: any): obj is string => {
     return 'string' == typeof obj;
@@ -11,6 +11,10 @@ export const isNumber = (obj: any): obj is number => {
 
 export const isArray = (obj: any): obj is [] => {
     return Array.isArray(obj);
+}
+
+export const isCustomTagFunction = (obj: any): obj is CustomTagFunction => {
+    return typeof obj === 'function';
 }
 
 export const isBrowser = () => {

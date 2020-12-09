@@ -1,5 +1,7 @@
 import {Subscribable} from "./store";
-import {isArray, isElement, isNumber, isString, isSubscribable} from "./utils";
+import {isArray, isElement, isNumber, isString, isSubscribable, isCustomTagFunction} from "./utils";
+
+export const FRAGMENT = "fragment";
 
 type CssKey = keyof CSSStyleDeclaration;
 
@@ -48,7 +50,12 @@ function ni(tag: string, args: any[]): VElement {
     }
 }
 
-export function n(tag: string, ...args: any[]): VElement {
+export type CustomTagFunction = (...args: any[]) => VElement;
+
+export function n(tag: string | CustomTagFunction, ...args: any[]): VElement {
+    if(isCustomTagFunction(tag)) {
+        return tag(args);
+    }
     return ni(tag, args);
 }
 
