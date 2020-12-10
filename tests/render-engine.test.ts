@@ -1,6 +1,6 @@
 import {describe} from "mocha";
-import {a, button, div, h1, input, p, span, VElement} from "../src/vnodes";
-import { assert } from "chai";
+import {a, button, div, fragment, h1, input, p, span, VElement} from "../src/vnodes";
+import { assert, expect } from "chai";
 import {store} from "../src/store";
 import {initDomMock, render} from "./dom-mock";
 
@@ -38,6 +38,20 @@ describe('render-engine', () => {
         const target = render(element);
 
         assert.equal(target.innerHTML, "1234");
+    })
+    it('number zero store', () => {
+        const element = div(store(0));
+
+        const target = render(element);
+
+        assert.equal(target.innerHTML, "0");
+    })
+    it('number zero node', () => {
+        const element = div(0, "-", [0], "-", store(0), "-", "0");
+
+        const target = render(element);
+
+        assert.equal(target.innerHTML, "0-0-0-0");
     })
     it('initialRender, two div children', () => {
         const elements = div({class: 'root'}, [
@@ -312,5 +326,30 @@ describe('tag types', () => {
 
         // @ts-ignore
         assert.equal(target.value, "NewValue")
+    })
+})
+
+describe('fragment',() => {
+    it('fragment in root is not allowed', () => {
+        const frag = fragment(1,2,3);
+
+        expect(() => render(frag)).to.throw('Root element is not allowed to be a fragment')
+    })
+    it('simple', () => {
+        const frag = fragment(1,2,3);
+
+        const target = render(div(frag));
+
+        assert.equal(target.innerHTML, "123");
+    })
+    it('complex', () => {
+        const num$ = store(2);
+        const frag = fragment(1, num$, "3");
+
+        const target = render(div(frag));
+
+        assert.equal(target.innerHTML, "123");
+        num$.set(3)
+        assert.equal(target.innerHTML, "133");
     })
 })

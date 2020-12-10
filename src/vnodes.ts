@@ -58,6 +58,10 @@ function ni(tag: string, args: any[]): VElement {
 
 export type CustomTagFunction = (...args: any[]) => VElement;
 
+export function fragment(...children: any[]): VElement {
+    return {tag: FRAGMENT, children}
+}
+
 export function n(tag: string | CustomTagFunction, ...args: any[]): VElement {
     if(isCustomTagFunction(tag)) {
         return tag(args);

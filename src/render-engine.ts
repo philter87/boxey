@@ -1,6 +1,6 @@
-import {VElement, VNode} from "./vnodes";
+import {Child, FRAGMENT, VElement, VNode} from "./vnodes";
 import {multiSubscription, Subscription} from "./store";
-import {calcArraySum, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
+import {calcArraySum, isElement, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
 import {ChildInfo} from "./child-info";
 
 export class ChildGroup {
@@ -10,7 +10,7 @@ export class ChildGroup {
     constructor(nodes: null | VNode | VNode[]) {
         this.subscriptions = [];
         this.domNodes = [];
-        if (!nodes) {
+        if (nodes == null) {
             // do nothing
         } else if (isNodeArray(nodes)) {
             nodes.forEach(n => this.push(createDomElement(n)));
@@ -42,36 +42,29 @@ export class ChildGroup {
     }
 }
 
+function handleFragments(children: Child[]) {
+    const flat: Child[] = []
+    children.forEach( c => {
+        if(isElement(c) && c.tag === FRAGMENT) {
+            c.children.forEach( nc => flat.push(nc))
+        } else {
+            flat.push(c);
+        }
+    })
+    return flat;
+}
+
 export const createDomElement = (node: VNode): ChildInfo => {
     if (isString(node) || isNumber(node)) {
         return {domElement: document.createTextNode(node+"")}
     }
+
     const domElement = document.createElement(node.tag)
+
     const subscriptions: Subscription[] = [];
 
-    for(let key in node.attr) {
-        if(key === 'class') {
-            domElement.className = node.attr.class;
-        } else if (key === 'style') {
-            for(const key in node.attr.style) {
-                const styleVal = node.attr.style[key];
-                if ( isString(styleVal) ) {
-                    domElement.style[key] = styleVal;
-                } else {
-                    subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
-                }
-            }
-        } else {
-            const nodeAttr = node.attr[key];
-            if (isSubscribable(nodeAttr)) {
-                subscriptions.push(nodeAttr.subscribe( newVal => domElement[key] = newVal))
-            } else {
-                domElement[key] = nodeAttr
-            }
-
-        }
-    }
-    if(node.children) {
+    if (node.children) {
+        node.children = handleFragments(node.children);
         const childGroups: {[order: number]: ChildGroup} = {};
         const childSizes: number[] = [];
         for (let i = 0; i < node.children.length; i++) {
@@ -104,10 +97,36 @@ export const createDomElement = (node: VNode): ChildInfo => {
             }
         }
     }
+
+    for(let key in node.attr) {
+        if(key === 'class') {
+            domElement.className = node.attr.class;
+        } else if (key === 'style') {
+            for(const key in node.attr.style) {
+                const styleVal = node.attr.style[key];
+                if ( isString(styleVal) ) {
+                    domElement.style[key] = styleVal;
+                } else {
+                    subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
+                }
+            }
+        } else {
+            const nodeAttr = node.attr[key];
+            if (isSubscribable(nodeAttr)) {
+                subscriptions.push(nodeAttr.subscribe( newVal => domElement[key] = newVal))
+            } else {
+                domElement[key] = nodeAttr
+            }
+
+        }
+    }
     return {domElement, subscription: multiSubscription(subscriptions)};
 }
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
+    if(node.tag === FRAGMENT) {
+        throw Error("Root element is not allowed to be a fragment")
+    }
     const fragment = document.createDocumentFragment();
     fragment.appendChild(createDomElement(node).domElement);
     target.appendChild(fragment);
