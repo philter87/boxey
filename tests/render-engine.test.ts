@@ -342,7 +342,7 @@ describe('fragment',() => {
 
         assert.equal(target.innerHTML, "123");
     })
-    it('complex', () => {
+    it('simple with store', () => {
         const num$ = store(2);
         const frag = fragment(1, num$, "3");
 
@@ -351,5 +351,16 @@ describe('fragment',() => {
         assert.equal(target.innerHTML, "123");
         num$.set(3)
         assert.equal(target.innerHTML, "133");
+    })
+    it('fragment in store', () => {
+        const el$ = store(div("Hello"));
+
+        const target = render(div(el$));
+
+        assert.equal(target.children[0].innerHTML, "Hello");
+        el$.set(fragment("1","2","3"))
+        assert.equal(target.children[0].innerHTML, "123");
+        el$.set(div("World"))
+        assert.equal(target.children[0].innerHTML, "World");
     })
 })
