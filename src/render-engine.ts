@@ -1,7 +1,8 @@
-import {Child, FRAGMENT, VElement, VNode} from "./vnodes";
+import {Child, VElement, VNode} from "./vnodes";
 import {multiSubscription, Subscription} from "./store";
 import {calcArraySum, isElement, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
 import {ChildInfo} from "./child-info";
+import {FRAGMENT} from "./constants";
 
 export class ChildGroup {
     subscriptions: Subscription[];
@@ -43,15 +44,20 @@ export class ChildGroup {
 }
 
 function handleFragments(children: Child[]) {
-    const flat: Child[] = []
-    children.forEach( c => {
-        if(isElement(c) && c.tag === FRAGMENT) {
-            c.children.forEach( nc => flat.push(nc))
-        } else {
-            flat.push(c);
-        }
-    })
-    return flat;
+    const containsFragment = children.find( c => isElement(c) && c.tag === FRAGMENT);
+    if (containsFragment) {
+        const flat: Child[] = []
+        children.forEach( c => {
+            if(isElement(c) && c.tag === FRAGMENT) {
+                c.children.forEach( nc => flat.push(nc))
+            } else {
+                flat.push(c);
+            }
+        })
+        return flat;
+    } else {
+        return children;
+    }
 }
 
 export const createDomElement = (node: VNode): ChildInfo => {
@@ -71,6 +77,7 @@ export const createDomElement = (node: VNode): ChildInfo => {
             let child = node.children[i];
             if(isSubscribable(child)) {
                 childSizes[i] = 0;
+                // TODO will not work with fragment
                 const subscription = child.subscribe(newChild => {
                     // clean up old if exist
                     childGroups[i]?.remove(domElement);
@@ -98,16 +105,19 @@ export const createDomElement = (node: VNode): ChildInfo => {
         }
     }
 
+    if(node.attr?.class){
+        node.attr.className = node.attr.class;
+        delete node.attr.class
+    }
+
     for(let key in node.attr) {
-        if(key === 'class') {
-            domElement.className = node.attr.class;
-        } else if (key === 'style') {
+        if (key === 'style') {
             for(const key in node.attr.style) {
                 const styleVal = node.attr.style[key];
-                if ( isString(styleVal) ) {
-                    domElement.style[key] = styleVal;
-                } else {
+                if ( isSubscribable(styleVal) ) {
                     subscriptions.push(styleVal.subscribe( newStyleVal => domElement.style[key] = newStyleVal))
+                } else {
+                    domElement.style[key] = styleVal;
                 }
             }
         } else {

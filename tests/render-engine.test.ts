@@ -72,6 +72,16 @@ describe('render-engine', () => {
 
         assert.equal(target.style.height, height)
     })
+    it('class from store', () => {
+        const className$ = store("1");
+        const node = div({class: className$})
+
+        const target = render(node)
+
+        assert.equal(target.className, "1")
+        className$.set("2")
+        assert.equal(target.className, "2")
+    })
     it('style from dot change', () => {
         const firstHeight = "100px";
         const dot = store(firstHeight);

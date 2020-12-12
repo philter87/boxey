@@ -1,7 +1,8 @@
 import {store, Subscribable, WriteStore} from "./store";
-import {AnchorAttributes, Child, n, VNode} from "./vnodes";
+import {Child, n, VNode} from "./vnodes";
 import {UrlWithStringQuery} from "url";
 import {isBrowser} from "./utils";
+import {AnchorHTMLAttributes} from "./vnode-attributes";
 
 export interface Route {
     path: string;
@@ -93,7 +94,7 @@ export class Router {
         return this._url.map( l => l.matchedRoute ? l.matchedRoute.node : null);
     }
 
-    a(route: string, attr?: AnchorAttributes, ...children: Child[]): VNode{
+    a(route: string, attr?: AnchorHTMLAttributes<HTMLAnchorElement>, ...children: Child[]): VNode{
         attr = {...attr, href: route,  onclick: (ev) => {
             ev.preventDefault();
             this.navigate(route)
