@@ -70,7 +70,7 @@ export const createDomElement = (node?: VNode | VNode[]): ChildGroup => {
             } else {
                 const childInfo = createDomElement(child);
                 subscriptions.push(...childInfo.subscriptions)
-                childInfo.domElement.forEach( d => domElement.appendChild(d));
+                domElement.appendChild(childInfo.createFragment());
                 childSizes[i] = childInfo.size;
             }
         }
@@ -108,13 +108,7 @@ export const dotRender = (node: VElement, target: HTMLElement) => {
     if(node.tag === FRAGMENT) {
         throw Error("Root element is not allowed to be a fragment")
     }
-    const fragment = document.createDocumentFragment();
     const childInfo = createDomElement(node);
-    if(Array.isArray(childInfo.domElement)) {
-        childInfo.domElement.forEach( d => fragment.appendChild(d))
-    } else {
-        fragment.appendChild(childInfo.domElement);
-    }
-    target.appendChild(fragment);
+    target.appendChild(childInfo.createFragment());
     return target;
 }
