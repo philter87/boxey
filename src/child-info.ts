@@ -1,6 +1,25 @@
 import {Subscription} from "./store";
 
-export interface ChildInfo {
-    domElement: Node;
-    subscription?: Subscription;
+export class ChildGroup {
+    size: number;
+
+    constructor(public domElement: Node[], public subscriptions?: Subscription[]) {
+        this.size = domElement.length;
+        if(!subscriptions) {
+            this.subscriptions = [];
+        }
+    }
+
+    remove(parentNode: Node) {
+        if(this.subscriptions) {
+            this.subscriptions.forEach(s => s.unsubscribe());
+        }
+        this.domElement.forEach(n => parentNode.removeChild(n));
+    }
+
+    createFragment(){
+        const fragment = document.createDocumentFragment();
+        this.domElement.forEach( d => fragment.appendChild(d));
+        return fragment;
+    }
 }

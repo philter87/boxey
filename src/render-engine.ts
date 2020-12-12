@@ -1,47 +1,8 @@
 import {Child, VElement, VNode} from "./vnodes";
-import {multiSubscription, Subscription} from "./store";
+import {Subscription} from "./store";
 import {calcArraySum, isElement, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
-import {ChildInfo} from "./child-info";
+import {ChildGroup} from "./child-info";
 import {FRAGMENT} from "./constants";
-
-export class ChildGroup {
-    subscriptions: Subscription[];
-    domNodes: Node[];
-
-    constructor(nodes: null | VNode | VNode[]) {
-        this.subscriptions = [];
-        this.domNodes = [];
-        if (nodes == null) {
-            // do nothing
-        } else if (isNodeArray(nodes)) {
-            nodes.forEach(n => this.push(createDomElement(n)));
-        } else {
-            this.push(createDomElement(nodes))
-        }
-    }
-
-    private push(childInfo: ChildInfo) {
-        if (childInfo.subscription) {
-            this.subscriptions.push(childInfo.subscription);
-        }
-        this.domNodes.push(childInfo.domElement);
-    }
-
-    createFragment() {
-        const fragment = document.createDocumentFragment();
-        this.domNodes.forEach(n => fragment.appendChild(n));
-        return fragment;
-    }
-
-    size() {
-        return this.domNodes.length;
-    }
-
-    remove(parentNode: Node) {
-        this.subscriptions.forEach(s => s.unsubscribe());
-        this.domNodes.forEach(n => parentNode.removeChild(n));
-    }
-}
 
 function handleFragments(children: Child[]) {
     const containsFragment = children.find( c => isElement(c) && c.tag === FRAGMENT);
@@ -60,9 +21,20 @@ function handleFragments(children: Child[]) {
     }
 }
 
-export const createDomElement = (node: VNode): ChildInfo => {
-    if (isString(node) || isNumber(node)) {
-        return {domElement: document.createTextNode(node+"")}
+export const createDomElement = (node?: VNode | VNode[]): ChildGroup => {
+    if (node == null) {
+        return new ChildGroup([]);
+    } else if (isString(node) || isNumber(node)) {
+        return new ChildGroup([document.createTextNode(node+"")]);
+    } else if (isNodeArray(node)) {
+        const domElements: Node[] = [];
+        const subscriptions: Subscription[] = [];
+        node.forEach( n => {
+            const child = createDomElement(n);
+            domElements.push(...child.domElement);
+            subscriptions.push(...child.subscriptions);
+        })
+        return new ChildGroup(domElements, subscriptions);
     }
 
     const domElement = document.createElement(node.tag)
@@ -81,9 +53,8 @@ export const createDomElement = (node: VNode): ChildInfo => {
                 const subscription = child.subscribe(newChild => {
                     // clean up old if exist
                     childGroups[i]?.remove(domElement);
-
                     let position = calcArraySum(childSizes, i);
-                    const childGroup = new ChildGroup(newChild);
+                    const childGroup = createDomElement(newChild);
 
                     if (position == 0) {
                         domElement.prepend(childGroup.createFragment());
@@ -93,14 +64,14 @@ export const createDomElement = (node: VNode): ChildInfo => {
                         domElement.insertBefore(childGroup.createFragment(), next);
                     }
                     childGroups[i] = childGroup;
-                    childSizes[i] = childGroup.size();
+                    childSizes[i] = childGroup.size;
                 })
                 subscriptions.push(subscription);
             } else {
-                const childGroup = new ChildGroup(child);
-                domElement.appendChild(childGroup.createFragment());
-                childGroup.subscriptions.forEach( s => subscriptions.push(s));
-                childSizes[i] = childGroup.size();
+                const childInfo = createDomElement(child);
+                subscriptions.push(...childInfo.subscriptions)
+                childInfo.domElement.forEach( d => domElement.appendChild(d));
+                childSizes[i] = childInfo.size;
             }
         }
     }
@@ -130,7 +101,7 @@ export const createDomElement = (node: VNode): ChildInfo => {
 
         }
     }
-    return {domElement, subscription: multiSubscription(subscriptions)};
+    return new ChildGroup([domElement], subscriptions);
 }
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
@@ -138,7 +109,12 @@ export const dotRender = (node: VElement, target: HTMLElement) => {
         throw Error("Root element is not allowed to be a fragment")
     }
     const fragment = document.createDocumentFragment();
-    fragment.appendChild(createDomElement(node).domElement);
+    const childInfo = createDomElement(node);
+    if(Array.isArray(childInfo.domElement)) {
+        childInfo.domElement.forEach( d => fragment.appendChild(d))
+    } else {
+        fragment.appendChild(childInfo.domElement);
+    }
     target.appendChild(fragment);
     return target;
 }
