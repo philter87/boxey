@@ -8,7 +8,7 @@ export class ChildGroup {
         }
     }
 
-    remove(parentNode: Node) {
+    cleanUp(parentNode: Node) {
         this.subscriptions.forEach(s => s.unsubscribe());
         this.domElement.forEach(n => parentNode.removeChild(n));
     }
