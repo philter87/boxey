@@ -1,10 +1,8 @@
 import {Subscription} from "./store";
 
 export class ChildGroup {
-    size: number;
 
     constructor(public domElement: Node[], public subscriptions?: Subscription[]) {
-        this.size = domElement.length;
         if(!subscriptions) {
             this.subscriptions = [];
         }
@@ -15,7 +13,7 @@ export class ChildGroup {
         this.domElement.forEach(n => parentNode.removeChild(n));
     }
 
-    createFragment(){
+    createElement(){
         const fragment = document.createDocumentFragment();
         this.domElement.forEach( d => fragment.appendChild(d));
         return fragment;
