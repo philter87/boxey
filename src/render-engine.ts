@@ -6,6 +6,15 @@ import {FRAGMENT} from "./constants";
 import {HTMLAttributes} from "./vnode-attributes";
 export const EMPTY_GROUP = new ChildGroup([]);
 
+export const dotRender = (node: VElement, target: HTMLElement) => {
+    if(node.tag === FRAGMENT) {
+        throw Error("Root element is not allowed to be a fragment")
+    }
+    const childInfo = createDomElement(node);
+    target.appendChild(childInfo.createElement());
+    return target;
+}
+
 export const createDomElement = (node?: VNode | VNode[]): ChildGroup => {
     if (node == null) {
         return new ChildGroup([]);
@@ -35,15 +44,6 @@ function handleNodeArray(node: VNode[]) {
     return new ChildGroup(domElements, subscriptions);
 }
 
-export const dotRender = (node: VElement, target: HTMLElement) => {
-    if(node.tag === FRAGMENT) {
-        throw Error("Root element is not allowed to be a fragment")
-    }
-    const childInfo = createDomElement(node);
-    target.appendChild(childInfo.createElement());
-    return target;
-}
-
 function handleFragments(children: Child[]) {
     if (children.find( c => isElement(c) && c.tag === FRAGMENT)) {
         const flat: Child[] = []
@@ -69,6 +69,7 @@ function findSibling(childGroups: ChildGroup[], currentI: number): Node {
     return undefined;
 }
 
+
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) { return; }
     children = handleFragments(children);
@@ -82,7 +83,7 @@ function handleNodeChildren(children: Child[], parent: HTMLElement, subscription
                 const childGroup = createDomElement(newChild);
                 parent.insertBefore(childGroup.createElement(), findSibling(childGroups, i));
                 childGroups[i] = childGroup;
-            })
+            });
             subscriptions.push(subscription);
         } else {
             const childGroup = createDomElement(child);
