@@ -71,7 +71,7 @@ function findSibling(childGroups: ChildGroup[], currentI: number): Node {
 
 
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
-    if (!children) { return; }
+    if (!children) return;
     children = handleFragments(children);
     const childGroups: ChildGroup[] = [];
     for (let i = 0; i < children.length; i++) {
@@ -95,7 +95,7 @@ function handleNodeChildren(children: Child[], parent: HTMLElement, subscription
 }
 
 function handleAttributes(attr: HTMLAttributes<HTMLElement>, domElement: HTMLElement, subscriptions: Subscription[]) {
-    if(!attr) { return; }
+    if(!attr) return;
     if (attr.class) {
         attr.className = attr.class;
         delete attr.class
