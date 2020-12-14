@@ -21,6 +21,7 @@ export interface HTMLAttributes<T> extends Partial<GlobalEventHandlers>{
     dir?: string | Subscribable<string>;
     draggable?: Booleanish | Subscribable<Booleanish>;
     hidden?: boolean | Subscribable<boolean>;
+    innerHTML?: string | Subscribable<string>;
     id?: string | Subscribable<string>;
     lang?: string | Subscribable<string>;
     placeholder?: string | Subscribable<string>;
