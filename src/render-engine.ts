@@ -1,10 +1,9 @@
 import {Child, VElement, VNode} from "./vnodes";
-import {Subscription} from "./store";
+import {Subscribable, Subscription} from "./store";
 import {isElement, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
-import {ChildGroup} from "./child-info";
+import {ChildGroup, EMPTY_ELEMENTS} from "./child-info";
 import {FRAGMENT} from "./constants";
 import {HTMLAttributes} from "./vnode-attributes";
-export const EMPTY_GROUP = new ChildGroup();
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
     if(node.tag === FRAGMENT) {
@@ -15,7 +14,7 @@ export const dotRender = (node: VElement, target: HTMLElement) => {
     return target;
 }
 
-export const createDomElement = (node?: VNode | VNode[]): ChildGroup => {
+export const createDomElement = (node?: VNode | VNode[], parent?: Node, prevChildGroup?: ChildGroup): ChildGroup => {
     if (node == null) {
         return new ChildGroup();
     } else if (isString(node) || isNumber(node)) {
@@ -60,25 +59,27 @@ function handleFragments(children: Child[]) {
     }
 }
 
+function createGroup(child: Subscribable<VNode | VNode[] | null>, parent: HTMLElement, subscriptions: Subscription[]) {
+    const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[]);
+    const subscription = child.subscribe(newChild => {
+        currentGroup.cleanUp(parent);
+        currentGroup.swap(createDomElement(newChild));
+        parent.insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
+    });
+    subscriptions.push(subscription)
+    return currentGroup;
+}
+
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) return;
     children = handleFragments(children);
     let prevGroup: ChildGroup;
-    children.forEach( (child, i) => {
-        let currentGroup: ChildGroup;
-        if (isSubscribable(child)) {
-            currentGroup = new ChildGroup();
-            const subscription = child.subscribe(newChild => {
-                currentGroup.cleanUp(parent);
-                currentGroup.swap(createDomElement(newChild));
-                parent.insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
-            });
-            subscriptions.push(subscription);
-        } else {
-            currentGroup = createDomElement(child);
-            subscriptions.push(...currentGroup.subscriptions)
-            parent.appendChild(currentGroup.createElement());
-        }
+    children.forEach( (child) => {
+        let currentGroup = isSubscribable(child)
+            ? createGroup(child, parent, subscriptions)
+            : createDomElement(child);
+        subscriptions.push(...currentGroup.subscriptions)
+        parent.appendChild(currentGroup.createElement());
         if(prevGroup) {
             prevGroup.nextSibling = currentGroup;
         }
