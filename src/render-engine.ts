@@ -4,7 +4,7 @@ import {isElement, isNodeArray, isNumber, isString, isSubscribable} from "./util
 import {ChildGroup} from "./child-info";
 import {FRAGMENT} from "./constants";
 import {HTMLAttributes} from "./vnode-attributes";
-export const EMPTY_GROUP = new ChildGroup([]);
+export const EMPTY_GROUP = new ChildGroup();
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
     if(node.tag === FRAGMENT) {
@@ -17,7 +17,7 @@ export const dotRender = (node: VElement, target: HTMLElement) => {
 
 export const createDomElement = (node?: VNode | VNode[]): ChildGroup => {
     if (node == null) {
-        return new ChildGroup([]);
+        return new ChildGroup();
     } else if (isString(node) || isNumber(node)) {
         return new ChildGroup([document.createTextNode(node+"")]);
     } else if (isNodeArray(node)) {
@@ -60,29 +60,18 @@ function handleFragments(children: Child[]) {
     }
 }
 
-function findSibling(childGroups: ChildGroup[], currentI: number): Node {
-    for (let i = currentI+1; i < childGroups.length; i++) {
-        if(childGroups[i] && childGroups[i].domElement.length > 0) {
-            return childGroups[i].domElement[0];
-        }
-    }
-    return undefined;
-}
-
-
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) return;
     children = handleFragments(children);
     const childGroups: ChildGroup[] = [];
-    for (let i = 0; i < children.length; i++) {
-        let child = children[i];
+    children.forEach( (child, i) => {
         if (isSubscribable(child)) {
-            childGroups[i] = EMPTY_GROUP;
+            childGroups[i] = new ChildGroup();
             const subscription = child.subscribe(newChild => {
-                childGroups[i]?.cleanUp(parent);
-                const childGroup = createDomElement(newChild);
-                parent.insertBefore(childGroup.createElement(), findSibling(childGroups, i));
-                childGroups[i] = childGroup;
+                const prevGroup = childGroups[i];
+                prevGroup.cleanUp(parent);
+                prevGroup.swap(createDomElement(newChild));
+                parent.insertBefore(prevGroup.createElement(), prevGroup.nextSibling?.getFirstDomElement());
             });
             subscriptions.push(subscription);
         } else {
@@ -91,7 +80,10 @@ function handleNodeChildren(children: Child[], parent: HTMLElement, subscription
             parent.appendChild(childGroup.createElement());
             childGroups[i] = childGroup;
         }
-    }
+        if(childGroups[i-1]) {
+            childGroups[i-1].nextSibling = childGroups[i];
+        }
+    })
 }
 
 function handleAttributes(attr: HTMLAttributes<HTMLElement>, domElement: HTMLElement, subscriptions: Subscription[]) {
