@@ -73,6 +73,9 @@ function createGroup(child: Subscribable<VNode | VNode[] | null>, parent: HTMLEl
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) return;
     children = handleFragments(children);
+
+    // A dynamic group needs a reference to the next sibling in the dom tree. This is because we need to draw the dynamic
+    // group at the correct location in the dom tree.
     let prevDynamicGroup: ChildGroup;
     children.forEach( (child) => {
         let currentGroup = isSubscribable(child)
@@ -80,11 +83,14 @@ function handleNodeChildren(children: Child[], parent: HTMLElement, subscription
             : createDomElement(child);
         subscriptions.push(...currentGroup.subscriptions)
         parent.appendChild(currentGroup.createElement());
+
+        // The current group stores a reference to the last dynamic group if it was dynamic.
         if(prevDynamicGroup) {
             prevDynamicGroup.nextSibling = currentGroup;
         }
-        const isDynamic = isSubscribable(child) || currentGroup.domElement.length == 0;
-        prevDynamicGroup = isDynamic ? currentGroup : null;
+        // prevDynamicGroup is only assigned when a child is dynamic or empty.
+        const isDynamicOrEmpty = isSubscribable(child) || currentGroup.domElement.length == 0;
+        prevDynamicGroup = isDynamicOrEmpty ? currentGroup : null;
     })
 }
 
