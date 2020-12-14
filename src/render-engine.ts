@@ -62,8 +62,7 @@ function handleFragments(children: Child[]) {
 function createGroup(child: Subscribable<VNode | VNode[] | null>, parent: HTMLElement, subscriptions: Subscription[]) {
     const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[]);
     const subscription = child.subscribe(newChild => {
-        currentGroup.cleanUp(parent);
-        currentGroup.swap(createDomElement(newChild));
+        currentGroup.swap(createDomElement(newChild), parent);
         parent.insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
     });
     subscriptions.push(subscription)

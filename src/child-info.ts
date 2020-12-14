@@ -9,8 +9,7 @@ export class ChildGroup {
     }
 
     cleanUp(parentNode: Node) {
-        this.subscriptions.forEach(s => s.unsubscribe());
-        this.domElement.forEach(n => parentNode.removeChild(n));
+
     }
 
     createElement(){
@@ -26,7 +25,12 @@ export class ChildGroup {
         return this.nextSibling ? this.nextSibling.getFirstDomElement() : null;
     }
 
-    swap(newGroup: ChildGroup){
+    swap(newGroup: ChildGroup, parent: HTMLElement){
+        // First we clean up previus group
+        this.subscriptions.forEach(s => s.unsubscribe());
+        this.domElement.forEach(n => parent.removeChild(n));
+
+        // Then we swap
         this.domElement = newGroup.domElement;
         this.subscriptions = newGroup.subscriptions;
     }
