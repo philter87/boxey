@@ -63,26 +63,26 @@ function handleFragments(children: Child[]) {
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) return;
     children = handleFragments(children);
-    const childGroups: ChildGroup[] = [];
+    let prevGroup: ChildGroup;
     children.forEach( (child, i) => {
+        let currentGroup: ChildGroup;
         if (isSubscribable(child)) {
-            childGroups[i] = new ChildGroup();
+            currentGroup = new ChildGroup();
             const subscription = child.subscribe(newChild => {
-                const prevGroup = childGroups[i];
-                prevGroup.cleanUp(parent);
-                prevGroup.swap(createDomElement(newChild));
-                parent.insertBefore(prevGroup.createElement(), prevGroup.nextSibling?.getFirstDomElement());
+                currentGroup.cleanUp(parent);
+                currentGroup.swap(createDomElement(newChild));
+                parent.insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
             });
             subscriptions.push(subscription);
         } else {
-            const childGroup = createDomElement(child);
-            subscriptions.push(...childGroup.subscriptions)
-            parent.appendChild(childGroup.createElement());
-            childGroups[i] = childGroup;
+            currentGroup = createDomElement(child);
+            subscriptions.push(...currentGroup.subscriptions)
+            parent.appendChild(currentGroup.createElement());
         }
-        if(childGroups[i-1]) {
-            childGroups[i-1].nextSibling = childGroups[i];
+        if(prevGroup) {
+            prevGroup.nextSibling = currentGroup;
         }
+        prevGroup = currentGroup;
     })
 }
 
