@@ -73,17 +73,18 @@ function createGroup(child: Subscribable<VNode | VNode[] | null>, parent: HTMLEl
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) return;
     children = handleFragments(children);
-    let prevGroup: ChildGroup;
+    let prevDynamicGroup: ChildGroup;
     children.forEach( (child) => {
         let currentGroup = isSubscribable(child)
             ? createGroup(child, parent, subscriptions)
             : createDomElement(child);
         subscriptions.push(...currentGroup.subscriptions)
         parent.appendChild(currentGroup.createElement());
-        if(prevGroup) {
-            prevGroup.nextSibling = currentGroup;
+        if(prevDynamicGroup) {
+            prevDynamicGroup.nextSibling = currentGroup;
         }
-        prevGroup = currentGroup;
+        const isDynamic = isSubscribable(child) || currentGroup.domElement.length == 0;
+        prevDynamicGroup = isDynamic ? currentGroup : null;
     })
 }
 

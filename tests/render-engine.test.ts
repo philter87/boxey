@@ -1,8 +1,9 @@
 import {describe} from "mocha";
-import {a, button, div, fragment, h1, input, p, span, VElement} from "../src/vnodes";
+import {a, button, div, h1, input, p, span, VElement} from "../src/vnodes";
 import { assert, expect } from "chai";
 import {store} from "../src/store";
 import {initDomMock, render} from "./dom-mock";
+import {FRAGMENT} from "../src/constants";
 
 // mocking document with jsdom
 initDomMock();
@@ -338,6 +339,11 @@ describe('tag types', () => {
         assert.equal(target.value, "NewValue")
     })
 })
+
+// Fragment is not enabled but this is how it would look. We have some issues with implementing it
+function fragment(...children: any[]): VElement {
+    return {tag: FRAGMENT, children}
+}
 
 describe('fragment',() => {
     it('fragment in root is not allowed', () => {
