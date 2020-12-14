@@ -25,7 +25,7 @@ export class ChildGroup {
         return this.nextSibling ? this.nextSibling.getFirstDomElement() : null;
     }
 
-    swap(newGroup: ChildGroup, parent: HTMLElement){
+    swap(newGroup: ChildGroup, parent: Node){
         // First we clean up previus group
         this.subscriptions.forEach(s => s.unsubscribe());
         this.domElement.forEach(n => parent.removeChild(n));
