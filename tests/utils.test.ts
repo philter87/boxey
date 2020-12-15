@@ -1,6 +1,6 @@
 import {describe} from "mocha";
 import { assert } from "chai";
-import {isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "../src/utils";
+import {isCustomTagFunction, isNumber, isString, isSubscribable} from "../src/utils";
 import {store} from "../src/store";
 
 const ARRAY: any[] = ['aString', ['an array'], store(2)];
