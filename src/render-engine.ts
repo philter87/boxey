@@ -2,13 +2,9 @@ import {Child, VElement, VNode} from "./vnodes";
 import {Subscribable, Subscription} from "./store";
 import {isElement, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
 import {ChildGroup, EMPTY_ELEMENTS} from "./child-info";
-import {FRAGMENT} from "./constants";
 import {HTMLAttributes} from "./vnode-attributes";
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
-    if(node.tag === FRAGMENT) {
-        throw Error("Root element is not allowed to be a fragment")
-    }
     const childInfo = createDomElement(node);
     target.appendChild(childInfo.createElement());
     return target;
@@ -43,22 +39,6 @@ function handleNodeArray(node: VNode[]) {
     return new ChildGroup(domElements, subscriptions);
 }
 
-function handleFragments(children: Child[]) {
-    if (children.find( c => isElement(c) && c.tag === FRAGMENT)) {
-        const flat: Child[] = []
-        children.forEach( c => {
-            if(isElement(c) && c.tag === FRAGMENT) {
-                c.children.forEach( nc => flat.push(nc))
-            } else {
-                flat.push(c);
-            }
-        })
-        return flat;
-    } else {
-        return children;
-    }
-}
-
 function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>, parent: Node, subscriptions: Subscription[]) {
     const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[]);
     const subscription = child.subscribe(newChild => {
@@ -71,7 +51,6 @@ function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>, parent:
 
 function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
     if (!children) return;
-    children = handleFragments(children);
 
     // A dynamic group needs a reference to the next sibling in the dom tree. The dynamic group uses this reference to
     // append it self to the dom at the correct location (with the parent.insertBefore).

@@ -1,9 +1,8 @@
 import {describe} from "mocha";
-import {a, button, div, h1, input, p, span, VElement} from "../src/vnodes";
+import {a, button, div, h1, input, p, span} from "../src/vnodes";
 import { assert, expect } from "chai";
 import {store} from "../src/store";
 import {initDomMock, render} from "./dom-mock";
-import {FRAGMENT} from "../src/constants";
 
 // mocking document with jsdom
 initDomMock();
@@ -340,43 +339,3 @@ describe('tag types', () => {
     })
 })
 
-// Fragment is not enabled but this is how it would look. We have some issues with implementing it
-function fragment(...children: any[]): VElement {
-    return {tag: FRAGMENT, children}
-}
-
-describe('fragment',() => {
-    it('fragment in root is not allowed', () => {
-        const frag = fragment(1,2,3);
-
-        expect(() => render(frag)).to.throw('Root element is not allowed to be a fragment')
-    })
-    it('simple', () => {
-        const frag = fragment(1,2,3);
-
-        const target = render(div(frag));
-
-        assert.equal(target.innerHTML, "123");
-    })
-    it('simple with store', () => {
-        const num$ = store(2);
-        const frag = fragment(1, num$, "3");
-
-        const target = render(div(frag));
-
-        assert.equal(target.innerHTML, "123");
-        num$.set(3)
-        assert.equal(target.innerHTML, "133");
-    })
-    it('fragment in store', () => {
-        const el$ = store(div("Hello"));
-
-        const target = render(div(el$));
-
-        assert.equal(target.children[0].innerHTML, "Hello");
-        el$.set(fragment("1","2","3"))
-        assert.equal(target.children[0].innerHTML, "123");
-        el$.set(div("World"))
-        assert.equal(target.children[0].innerHTML, "World");
-    })
-})

@@ -1,7 +1,6 @@
 import {Subscribable} from "./store";
 import {isArray, isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "./utils";
 import {AnchorHTMLAttributes, HTMLAttributes, InputHTMLAttributes} from "./vnode-attributes";
-import {FRAGMENT} from "./constants";
 
 export interface VElement {
     tag: string;
