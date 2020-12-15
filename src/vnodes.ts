@@ -1,5 +1,5 @@
 import {Subscribable} from "./store";
-import {isArray, isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "./utils";
+import {isCustomTagFunction} from "./utils";
 import {AnchorHTMLAttributes, HTMLAttributes, InputHTMLAttributes} from "./vnode-attributes";
 
 export interface VElement {
@@ -9,43 +9,35 @@ export interface VElement {
 }
 
 export type VNode = VElement | string | number;
-
 export type Child = VNode | VNode[] | Subscribable<VNode | VNode[] | null>;
-
-function ni(tag: string, args: any[]): VElement {
-    if (args.length == 0) return {tag};
-    args = args.map( a => isNumber(a) ? a.toString() : a);
-
-    const first = args[0];
-    const isChildLike = isElement(first) || isArray(first) || isString(first) || isSubscribable(first);
-    if (isChildLike) {
-        const children = isArray(first) ? first : args;
-        return {tag, children};
-    } else {
-        const attr = first;
-        const second = args[1];
-        if (!second) {
-            return {tag, attr};
-        }
-        const children = isArray(second) ? second : args.slice(1);
-        return {tag, attr, children};
-    }
-}
-
 export type CustomTagFunction = (...args: any[]) => VElement;
 
-// export function fragment(...children: any[]): VElement {
-//     return {tag: FRAGMENT, children}
-// }
 
-export function n(tag: string | CustomTagFunction, ...args: any[]): VElement {
+export function n(tag: string | CustomTagFunction): VElement;
+export function n(tag: string | CustomTagFunction, children: Child[]): VElement;
+export function n(tag: string | CustomTagFunction, attributes?: HTMLAttributes<HTMLElement>): VElement;
+export function n(tag: string | CustomTagFunction, attributes?: HTMLAttributes<HTMLElement>, children?: Child[]): VElement;
+export function n(tag: string | CustomTagFunction, attrOrChildren?: HTMLAttributes<HTMLElement> | Child[], children?: Child[]): VElement {
     if(isCustomTagFunction(tag)) {
-        return tag(args);
+        return tag(attrOrChildren, children);
     }
-    return ni(tag, args);
+    const isFirstChildren = Array.isArray(attrOrChildren);
+    const attr = isFirstChildren ? undefined : attrOrChildren as HTMLAttributes<HTMLElement>;
+    children =  isFirstChildren ? attrOrChildren as Child[] : children;
+    if(attr && children) {
+        return {tag, attr, children};
+    } else if(attr && !children) {
+        return {tag, attr}
+    } else if(!attr && children) {
+        return {tag, children}
+    } else {
+        return {tag};
+    }
 }
 
-const nn = (tag: string) => (...args: any[]) => ni(tag, args);
+const nn = (tag: string) => (...args: any[]) => {
+    return n(tag, args[0], args[1]);
+}
 
 type TagOverloads<A> = {
     (): VElement;

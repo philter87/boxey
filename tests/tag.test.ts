@@ -35,26 +35,6 @@ describe('node', () => {
 
         equals(result, {tag: DIV});
     })
-    it('children array vs children varargs: no attr', () => {
-        const array = n(DIV, CHILDREN)
-        const varargs = n(DIV, FIRST_CHILD, SECOND_CHILD);
-        equals(array, varargs);
-    })
-    it('children array vs children varargs: with attr', () => {
-        const array = n(DIV, ATTRS, CHILDREN)
-        const varargs = n(DIV, ATTRS, FIRST_CHILD, SECOND_CHILD);
-        equals(array, varargs);
-    })
-    it('children text and node - 1', () => {
-        const array = n(DIV, ATTRS, [div(), 'A'])
-        const varargs = n(DIV, ATTRS, div(), 'A');
-        equals(array, varargs);
-    })
-    it('children text and node - 2', () => {
-        const array = n(DIV, [div(), 'A'])
-        const varargs = n(DIV, div(), 'A');
-        equals(array, varargs);
-    })
 })
 
 describe('div', () => {
@@ -75,7 +55,7 @@ describe('is custom tag', () => {
     it('custom tag', () => {
         const TAG = "span";
         const CHILD = "Hello World!";
-        const MyComponent = () => n(TAG, CHILD);
+        const MyComponent = () => n(TAG, [CHILD]);
         const result = n(MyComponent)
         console.log(result);
         assert.equal(result.tag, TAG);

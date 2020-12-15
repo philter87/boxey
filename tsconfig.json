@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2015",
     "declaration": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "jsxFactory": "n",
+    "jsx": "preserve"
   },
   "include": ["src"]
 }

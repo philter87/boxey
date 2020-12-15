@@ -1,6 +1,6 @@
 import {Child, VElement, VNode} from "./vnodes";
 import {Subscribable, Subscription} from "./store";
-import {isElement, isNodeArray, isNumber, isString, isSubscribable} from "./utils";
+import {isNumber, isString, isSubscribable} from "./utils";
 import {ChildGroup, EMPTY_ELEMENTS} from "./child-info";
 import {HTMLAttributes} from "./vnode-attributes";
 
@@ -14,8 +14,8 @@ export const createDomElement = (node?: VNode | VNode[], parent?: Node, prevChil
     if (node == null) {
         return new ChildGroup();
     } else if (isString(node) || isNumber(node)) {
-        return new ChildGroup([document.createTextNode(node+"")]);
-    } else if (isNodeArray(node)) {
+        return new ChildGroup([document.createTextNode(node.toString())]);
+    } else if (Array.isArray(node)) {
         return handleNodeArray(node);
     }
 
