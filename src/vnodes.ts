@@ -48,11 +48,10 @@ export function n(tag: string | CustomTagFunction, ...args: any[]): VElement {
 const nn = (tag: string) => (...args: any[]) => ni(tag, args);
 
 type TagOverloads<A> = {
+    (): VElement;
     (attributes: A): VElement;
     (children: Child[]): VElement;
-    (...children: Child[]): VElement;
     (attributes: A, children: Child[]): VElement;
-    (attributes: A, ...children: Child[]): VElement;
 }
 
 export const a: TagOverloads<AnchorHTMLAttributes<HTMLAnchorElement>> = nn('a');

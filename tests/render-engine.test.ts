@@ -33,21 +33,21 @@ describe('render-engine', () => {
 
     })
     it('number node', () => {
-        const element = div(1, [2,3], store(4));
+        const element = div([1, [2,3], store(4)]);
 
         const target = render(element);
 
         assert.equal(target.innerHTML, "1234");
     })
     it('number zero store', () => {
-        const element = div(store(0));
+        const element = div([store(0)]);
 
         const target = render(element);
 
         assert.equal(target.innerHTML, "0");
     })
     it('number zero node', () => {
-        const element = div(0, "-", [0], "-", store(0), "-", "0");
+        const element = div([0, "-", [0], "-", store(0), "-", "0"]);
 
         const target = render(element);
 
@@ -116,7 +116,7 @@ describe('render-engine', () => {
     })
     it('child in store', () => {
         const div$ = store(div());
-        const node = div(div$)
+        const node = div([div$])
 
         const target = render(node);
 
@@ -151,7 +151,7 @@ describe('render-engine', () => {
         const show$ = store(true);
         const str$ = store("Hello World");
         const height$ = store('100px');
-        const node = div(show$.map( show => show ? div({style: {height: height$}}, str$): span()))
+        const node = div([show$.map( show => show ? div({style: {height: height$}}, [str$]): span())]);
 
         render(node);
 
@@ -165,7 +165,7 @@ describe('render-engine', () => {
     it('child with subscriptions is replaced', () => {
         const show$ = store(true);
         const height$ = store('100px');
-        const node = div(show$.map( show => show ? div(div({style: {height: height$}})): span()))
+        const node = div([show$.map( show => show ? div([div({style: {height: height$}})]): span())])
 
         render(node);
 
@@ -174,10 +174,10 @@ describe('render-engine', () => {
     })
     it('allow first child to be null', () => {
         const show$ = store(false);
-        const node = div(
+        const node = div([
             show$.map( show => show ? div() : null),
             a()
-        )
+        ])
 
         const target = render(node);
 
@@ -188,11 +188,11 @@ describe('render-engine', () => {
     })
     it('allow second child to be null', () => {
         const show$ = store(false);
-        const node = div(
-            a(),
-            show$.map( show => show ? div() : null),
-            a()
-        )
+        const node = div([
+                a(),
+                show$.map( show => show ? div() : null),
+                a()
+        ])
 
         const target = render(node);
 
@@ -202,11 +202,11 @@ describe('render-engine', () => {
     })
     it('allow third child to be null', () => {
         const show$ = store(false);
-        const node = div(
-            a(),
-            a(),
-            show$.map( show => show ? div() : null),
-        )
+        const node = div([
+                a(),
+                a(),
+                show$.map( show => show ? div() : null),
+        ])
 
         const target = render(node);
 
@@ -217,9 +217,9 @@ describe('render-engine', () => {
     it('from div to null', () => {
         const show$ = store(true);
         const height$ = store('100px');
-        const node = div(
-            show$.map( show => show ? div({style: {height: height$}}) : null),
-        )
+        const node = div([
+                show$.map( show => show ? div({style: {height: height$}}) : null),
+        ])
 
         const target = render(node);
         show$.set(false);
@@ -230,12 +230,12 @@ describe('render-engine', () => {
     it('text nodes allow null', () => {
         const text$ = store<string | null>(null);
 
-        const node = div(
-            div('S','S','S'),
-            div(text$, 'S','S'),
-            div('S',text$, 'S'),
-            div('S', 'S', text$),
-        );
+        const node = div([
+                div(['S','S','S']),
+                div([text$, 'S','S']),
+                div(['S',text$, 'S']),
+                div(['S', 'S', text$]),
+        ]);
 
         const target = render(node);
 
@@ -251,11 +251,11 @@ describe('render-engine', () => {
         assert.equal(target.childNodes[3].textContent, 'SSD');
     })
     it('A list child', () => {
-        const node = div(
+        const node = div([
             "A",
             ["B","C","D"],
             "E"
-        );
+        ]);
 
         const target = render(node);
 

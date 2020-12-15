@@ -65,7 +65,7 @@ describe('router', () => {
             {path: "/contact", node: "Hello"},
         );
 
-        const target = render(div(routes));
+        const target = render(div([routes]));
 
         assert.equal(target.innerHTML, "Home");
     })
@@ -77,7 +77,7 @@ describe('router', () => {
             {path: "/contact", node: "Hello"},
         );
 
-        const target = render(div(routes));
+        const target = render(div([routes]));
         router.navigate("/about");
 
         assert.equal(target.innerHTML, "About");
@@ -89,7 +89,7 @@ describe('router', () => {
             {path: "/about", node: "About"},
             {path: "/contact", node: "Hello"},
         );
-        const target = render(div(routes));
+        const target = render(div([routes]));
 
         assert.equal(target.innerHTML, "About");
     })

@@ -20,7 +20,7 @@ describe('fragment',() => {
     xit('simple', () => {
         const frag = fragment(1,2,3);
 
-        const target = render(div(frag));
+        const target = render(div([frag]));
 
         assert.equal(target.innerHTML, "123");
     })
@@ -28,21 +28,21 @@ describe('fragment',() => {
         const num$ = store(2);
         const frag = fragment(1, num$, "3");
 
-        const target = render(div(frag));
+        const target = render(div([frag]));
 
         assert.equal(target.innerHTML, "123");
         num$.set(3)
         assert.equal(target.innerHTML, "133");
     })
     xit('fragment in store', () => {
-        const el$ = store(div("Hello"));
+        const el$ = store(div(["Hello"]));
 
-        const target = render(div(el$));
+        const target = render(div([el$]));
 
         assert.equal(target.children[0].innerHTML, "Hello");
         el$.set(fragment("1","2","3"))
         assert.equal(target.children[0].innerHTML, "123");
-        el$.set(div("World"))
+        el$.set(div([]))
         assert.equal(target.children[0].innerHTML, "World");
     })
 

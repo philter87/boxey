@@ -59,10 +59,8 @@ describe('node', () => {
 
 describe('div', () => {
     equals(div(ATTRS, CHILDREN), {tag: DIV, attr: ATTRS, children: CHILDREN})
-    equals(div(ATTRS, FIRST_CHILD, SECOND_CHILD), {tag: DIV, attr: ATTRS, children: CHILDREN})
     equals(div(ATTRS), {tag: DIV, attr: ATTRS});
     equals(div(CHILDREN), {tag: DIV, children: CHILDREN});
-    equals(div(FIRST_CHILD, SECOND_CHILD), {tag: DIV, children: CHILDREN});
     equals(div(), {tag: DIV})
 })
 

@@ -8,10 +8,6 @@ export class ChildGroup {
                 public parent?: Node) {
     }
 
-    cleanUp(parentNode: Node) {
-
-    }
-
     createElement(){
         const fragment = document.createDocumentFragment();
         this.domElement.forEach( d => fragment.appendChild(d));
