@@ -13,11 +13,12 @@ export type Child = VNode | VNode[] | Subscribable<VNode | VNode[] | null>;
 export type CustomTagFunction = (...args: any[]) => VElement;
 
 
+export function n(tag: string): VElement;
 export function n(tag: string | CustomTagFunction): VElement;
 export function n(tag: string | CustomTagFunction, children: Child[]): VElement;
-export function n(tag: string | CustomTagFunction, attributes?: HTMLAttributes<HTMLElement>): VElement;
-export function n(tag: string | CustomTagFunction, attributes?: HTMLAttributes<HTMLElement>, children?: Child[]): VElement;
-export function n(tag: string | CustomTagFunction, attrOrChildren?: HTMLAttributes<HTMLElement> | Child[], children?: Child[]): VElement {
+export function n(tag: string | CustomTagFunction, attributes?: {}): VElement;
+export function n(tag: string | CustomTagFunction, attributes?: {}, children?: Child[]): VElement;
+export function n(tag: string | CustomTagFunction, attrOrChildren?: {} | Child[], children?: Child[]): VElement {
     if(isCustomTagFunction(tag)) {
         return tag(attrOrChildren, children);
     }

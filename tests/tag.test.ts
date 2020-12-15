@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import {describe} from "mocha";
-import {div, a, n, VElement} from "../src/vnodes"
+import {div, a, n, VElement, Child} from "../src/vnodes"
 
 const DIV = 'div';
 const CLASS_NAME = 'aClass';
@@ -38,10 +38,12 @@ describe('node', () => {
 })
 
 describe('div', () => {
-    equals(div(ATTRS, CHILDREN), {tag: DIV, attr: ATTRS, children: CHILDREN})
-    equals(div(ATTRS), {tag: DIV, attr: ATTRS});
-    equals(div(CHILDREN), {tag: DIV, children: CHILDREN});
-    equals(div(), {tag: DIV})
+    it('', () => {
+        equals(div(ATTRS, CHILDREN), {tag: DIV, attr: ATTRS, children: CHILDREN})
+        equals(div(ATTRS), {tag: DIV, attr: ATTRS});
+        equals(div(CHILDREN), {tag: DIV, children: CHILDREN});
+        equals(div(), {tag: DIV})
+    })
 })
 
 describe('all tags', () => {
@@ -60,5 +62,16 @@ describe('is custom tag', () => {
         console.log(result);
         assert.equal(result.tag, TAG);
         assert.deepEqual(result.children, [CHILD]);
+    })
+    it('custom tag with attr and children', () => {
+        const TAG = "span";
+        const CHILD = "Hello World!";
+        const MyComponent = (height: string, children: Child[]) => n(TAG, {style: {height}}, children);
+
+        const result = n(MyComponent, "100px", ["Hello"]);
+        console.log(result);
+        assert.equal(result.tag, TAG);
+        assert.equal(result.attr.style['height'], "100px");
+        assert.deepEqual(result.children, ["Hello"]);
     })
 })
