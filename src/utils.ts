@@ -9,10 +9,6 @@ export const isNumber = (obj: any): obj is number => {
     return 'number' == typeof obj;
 }
 
-export const isArray = (obj: any): obj is [] => {
-    return Array.isArray(obj);
-}
-
 export const isCustomTagFunction = (obj: any): obj is CustomTagFunction => {
     return typeof obj === 'function';
 }
@@ -27,12 +23,4 @@ export const isSubscribable = <T>(obj: (T | any)): obj is Subscribable<T> => {
 
 export const isElement = (obj: any): obj is VElement => {
     return !!obj && !!obj.tag;
-}
-
-export const isNode = (obj: any): obj is VNode => {
-    return !!obj && isElement(obj) || isString(obj);
-}
-
-export const isNodeArray = (obj: VNode | VNode[]): obj is VNode[] => {
-    return isArray(obj);
 }

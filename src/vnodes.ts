@@ -1,5 +1,5 @@
 import {Subscribable} from "./store";
-import {isArray, isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "./utils";
+import {isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "./utils";
 import {AnchorHTMLAttributes, HTMLAttributes, InputHTMLAttributes} from "./vnode-attributes";
 
 export interface VElement {
@@ -14,12 +14,10 @@ export type Child = VNode | VNode[] | Subscribable<VNode | VNode[] | null>;
 
 function ni(tag: string, args: any[]): VElement {
     if (args.length == 0) return {tag};
-    args = args.map( a => isNumber(a) ? a.toString() : a);
-
     const first = args[0];
-    const isChildLike = isElement(first) || isArray(first) || isString(first) || isSubscribable(first);
+    const isChildLike = isElement(first) || Array.isArray(first) || isString(first) || isNumber(first) || isSubscribable(first);
     if (isChildLike) {
-        const children = isArray(first) ? first : args;
+        const children = Array.isArray(first) ? first : args;
         return {tag, children};
     } else {
         const attr = first;
@@ -27,16 +25,12 @@ function ni(tag: string, args: any[]): VElement {
         if (!second) {
             return {tag, attr};
         }
-        const children = isArray(second) ? second : args.slice(1);
+        const children = Array.isArray(second) ? second : args.slice(1);
         return {tag, attr, children};
     }
 }
 
 export type CustomTagFunction = (...args: any[]) => VElement;
-
-// export function fragment(...children: any[]): VElement {
-//     return {tag: FRAGMENT, children}
-// }
 
 export function n(tag: string | CustomTagFunction, ...args: any[]): VElement {
     if(isCustomTagFunction(tag)) {
