@@ -4,15 +4,10 @@ export const EMPTY_ELEMENTS: Node[] = [];
 export class ChildGroup {
     constructor(public domElement: Node[] = EMPTY_ELEMENTS,
                 public subscriptions: Subscription[] = EMPTY_SUBSCRIPTION,
-                public nextSibling?: ChildGroup,
-                public parent?: Node) {
+                public nextSibling?: ChildGroup) {
     }
 
-    cleanUp(parentNode: Node) {
-
-    }
-
-    createElement(){
+    createElement(): Node {
         const fragment = document.createDocumentFragment();
         this.domElement.forEach( d => fragment.appendChild(d));
         return fragment;
@@ -25,8 +20,8 @@ export class ChildGroup {
         return this.nextSibling ? this.nextSibling.getFirstDomElement() : null;
     }
 
-    swap(newGroup: ChildGroup, parent: Node){
-        // First we clean up previus group
+    swap(newGroup: ChildGroup, parent: HTMLElement){
+        // First we clean up previous group
         this.subscriptions.forEach(s => s.unsubscribe());
         this.domElement.forEach(n => parent.removeChild(n));
 
@@ -34,4 +29,5 @@ export class ChildGroup {
         this.domElement = newGroup.domElement;
         this.subscriptions = newGroup.subscriptions;
     }
+
 }

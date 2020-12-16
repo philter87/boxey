@@ -1,22 +1,28 @@
 import {Child, VElement, VNode} from "./vnodes";
 import {Subscribable, Subscription} from "./store";
-import {isNumber, isString, isSubscribable} from "./utils";
+import {isElement, isNumber, isString, isSubscribable} from "./utils";
 import {ChildGroup, EMPTY_ELEMENTS} from "./child-info";
 import {HTMLAttributes} from "./vnode-attributes";
+import {FRAGMENT} from "./constants";
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
-    const childInfo = createDomElement(node);
-    target.appendChild(childInfo.createElement());
+    const childInfo = createDomElement(node, target);
+    target.append(...childInfo.domElement);
     return target;
 }
 
-export const createDomElement = (node?: VNode | VNode[], parent?: Node, prevChildGroup?: ChildGroup): ChildGroup => {
+export const createDomElement = (node?: Child, parentDom?: HTMLElement, parentSubscriptions?: Subscription[]): ChildGroup => {
     if (node == null) {
         return new ChildGroup();
     } else if (isString(node) || isNumber(node)) {
-        return new ChildGroup([document.createTextNode(node+"")]);
+        return new ChildGroup([document.createTextNode(node.toString())]);
     } else if (Array.isArray(node)) {
-        return handleNodeArray(node);
+        return handleNodeArray(node, parentDom);
+    } else if(isSubscribable(node)) {
+        return createDynamicGroup(node, parentDom, parentSubscriptions)
+    }
+    if(node.tag === FRAGMENT) {
+        return handleNodeChildren(node.children, parentDom, parentSubscriptions);
     }
 
     const domElement = document.createElement(node.tag)
@@ -28,48 +34,53 @@ export const createDomElement = (node?: VNode | VNode[], parent?: Node, prevChil
     return new ChildGroup([domElement], subscriptions);
 }
 
-function handleNodeArray(node: VNode[]) {
+function handleNodeArray(node: VNode[], parentDom: HTMLElement) {
     const domElements: Node[] = [];
     const subscriptions: Subscription[] = [];
     node.forEach(n => {
-        const child = createDomElement(n);
+        const child = createDomElement(n, parentDom);
         domElements.push(...child.domElement);
         subscriptions.push(...child.subscriptions);
     })
     return new ChildGroup(domElements, subscriptions);
 }
 
-function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>, parent: Node, subscriptions: Subscription[]) {
+function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>,
+                            parentDom: HTMLElement,
+                            parentSubscriptions: Subscription[]) {
     const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[]);
     const subscription = child.subscribe(newChild => {
-        currentGroup.swap(createDomElement(newChild), parent);
-        parent.insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
+        const newGroup = createDomElement(newChild, parentDom, []);
+        currentGroup.swap(newGroup, parentDom);
+        parentDom.insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
     });
-    subscriptions.push(subscription)
+    parentSubscriptions.push(subscription)
     return currentGroup;
 }
 
-function handleNodeChildren(children: Child[], parent: HTMLElement, subscriptions: Subscription[]) {
+function handleNodeChildren(children: Child[],
+                            parent: HTMLElement,
+                            subscriptions: Subscription[] = []): ChildGroup {
     if (!children) return;
-
     // A dynamic group needs a reference to the next sibling in the dom tree. The dynamic group uses this reference to
     // append it self to the dom at the correct location (with the parent.insertBefore).
-    let prevDynamicGroup: ChildGroup;
+    let prevDynamicSibling: ChildGroup;
+    let domElements = [];
     children.forEach( (child) => {
-        let currentGroup = isSubscribable(child)
-            ? createDynamicGroup(child, parent, subscriptions)
-            : createDomElement(child);
+        let currentGroup = createDomElement(child,  parent, subscriptions);
         subscriptions.push(...currentGroup.subscriptions)
-        parent.appendChild(currentGroup.createElement());
 
         // The current group stores a reference to the last dynamic group if it was dynamic.
-        if(prevDynamicGroup) {
-            prevDynamicGroup.nextSibling = currentGroup;
+        if(prevDynamicSibling) {
+            prevDynamicSibling.nextSibling = currentGroup;
         }
         // prevDynamicGroup is only assigned when a child is dynamic or empty.
         const isDynamicOrEmpty = isSubscribable(child) || currentGroup.domElement.length == 0;
-        prevDynamicGroup = isDynamicOrEmpty ? currentGroup : null;
+        prevDynamicSibling = isDynamicOrEmpty ? currentGroup : null;
+        domElements.push(...currentGroup.domElement);
+        return parent.append(...currentGroup.domElement);
     })
+    return new ChildGroup(domElements, subscriptions);
 }
 
 function handleAttributes(attr: HTMLAttributes<HTMLElement>, domElement: HTMLElement, subscriptions: Subscription[]) {

@@ -1,5 +1,5 @@
 import {describe} from "mocha";
-import {a, button, div, h1, input, p, span} from "../src/vnodes";
+import {a, button, Child, div, h1, input, p, span, VNode} from "../src/vnodes";
 import { assert, expect } from "chai";
 import {store} from "../src/store";
 import {initDomMock, render} from "./dom-mock";
@@ -146,7 +146,6 @@ describe('render-engine', () => {
         show.set(false);
         assert.equal(target.children[1].tagName, 'SPAN');
     })
-
     it('child with subscriptions is replaced by one without', () => {
         const show$ = store(true);
         const str$ = store("Hello World");

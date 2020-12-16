@@ -12,15 +12,17 @@ export type VNode = VElement | string | number;
 
 export type Child = VNode | VNode[] | Subscribable<VNode | VNode[] | null>;
 
+function isChild(first) {
+    return isElement(first) || Array.isArray(first) || isString(first) || isNumber(first) || isSubscribable(first);
+}
+
 function ni(tag: string, args: any[]): VElement {
     if (args.length == 0) return {tag};
-    const first = args[0];
-    const isChildLike = isElement(first) || Array.isArray(first) || isString(first) || isNumber(first) || isSubscribable(first);
-    if (isChildLike) {
-        const children = Array.isArray(first) ? first : args;
+    if (isChild(args[0])) {
+        const children = Array.isArray(args[0]) ? args[0] : args;
         return {tag, children};
     } else {
-        const attr = first;
+        const attr = args[0];
         const second = args[1];
         if (!second) {
             return {tag, attr};
