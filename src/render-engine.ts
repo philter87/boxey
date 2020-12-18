@@ -1,7 +1,7 @@
 import {Child, VElement, VNode} from "./vnodes";
 import {Subscribable, Subscription} from "./store";
 import {isNumber, isString, isSubscribable} from "./utils";
-import {ChildGroup, EMPTY_ELEMENTS} from "./child-info";
+import {ChildGroup} from "./child-info";
 import {HTMLAttributes} from "./vnode-attributes";
 import {FRAGMENT} from "./constants";
 
@@ -37,7 +37,7 @@ export const createDomElement = (node?: Child, parentDom?: HTMLElement, parentSu
 function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>,
                             parentDom: HTMLElement,
                             parentSubscriptions: Subscription[]) {
-    const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[], true);
+    const currentGroup = new ChildGroup(undefined, undefined, true);
     const subscription = child.subscribe(newChild => {
         const newGroup = createDomElement(newChild, parentDom, []);
         currentGroup.swap(newGroup, parentDom);
