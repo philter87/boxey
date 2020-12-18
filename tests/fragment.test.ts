@@ -53,8 +53,19 @@ describe('fragment',() => {
         el$.set(frag)
         assert.equal(target.innerHTML, fragInnerHtml);
     })
+    it('store in fragment in store', () => {
+        const num$ = store(0)
+        const show$ = store(true);
+        const el = div(show$.map( s => s ? fragment(1, num$) : null));
 
-    xit('fragment with stores', () => {
+        const target = render(el);
+
+        assert.equal(num$.getSubscriberCount(), 1);
+        show$.set(false);
+        assert.equal(num$.getSubscriberCount(), 0);
+    })
+
+    it('fragment with stores', () => {
         const num$ = store(0)
         const el = div(fragment(1, num$), 3)
 

@@ -164,12 +164,25 @@ describe('render-engine', () => {
     it('child with subscriptions is replaced', () => {
         const show$ = store(true);
         const height$ = store('100px');
-        const node = div(show$.map( show => show ? div(div({style: {height: height$}})): span()))
+        const nestedEl$ = store(div("Hi"));
+        const node = div(show$.map( show => show ? div(div({style: {height: height$}}), nestedEl$): span()))
 
         render(node);
 
         show$.set(false);
         assert.equal(height$.getSubscriberCount(), 0);
+        assert.equal(nestedEl$.getSubscriberCount(), 0);
+    })
+    it('array child with subscriptions is replaced', () => {
+        const show$ = store(false);
+        const height$ = store('100px');
+        const node = div(show$.map( show => show ? [div({style:{height: height$}})]: span()))
+
+        render(node);
+
+        assert.equal(height$.getSubscriberCount(), 0);
+        show$.set(true);
+        assert.equal(height$.getSubscriberCount(), 1);
     })
     it('allow first child to be null', () => {
         const show$ = store(false);
