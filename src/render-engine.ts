@@ -6,37 +6,39 @@ import {HTMLAttributes} from "./vnode-attributes";
 import {FRAGMENT} from "./constants";
 
 export const dotRender = (node: VElement, target: HTMLElement) => {
-    const childInfo = createDomElement(node, new ChildGroup([target], []));
+    const childInfo = createDomElement(node, target);
     target.append(...childInfo.domElement);
     return target;
 }
 
-export const createDomElement = (node?: Child, parent?: ChildGroup): ChildGroup => {
+export const createDomElement = (node?: Child, parentDom?: HTMLElement, parentSubscriptions?: Subscription[]): ChildGroup => {
     if (node == null) {
         return new ChildGroup();
     } else if (isString(node) || isNumber(node)) {
         return new ChildGroup([document.createTextNode(node.toString())]);
     } else if (Array.isArray(node)) {
-        return handleNodeArray(node, parent);
+        return handleNodeArray(node, parentDom);
     } else if(isSubscribable(node)) {
-        return createDynamicGroup(node, parent)
+        return createDynamicGroup(node, parentDom, parentSubscriptions)
     }
     if(node.tag === FRAGMENT) {
-        return handleNodeChildren(node.children, new ChildGroup(parent.domElement, []));
+        return handleNodeChildren(node.children, parentDom, parentSubscriptions);
     }
 
-    const group = new ChildGroup([document.createElement(node.tag)], []);
-    handleNodeChildren(node.children, group);
-    handleAttributes(node.attr, group);
+    const domElement = document.createElement(node.tag)
+    const subscriptions: Subscription[] = [];
 
-    return group;
+    handleNodeChildren(node.children, domElement, subscriptions);
+    handleAttributes(node.attr, domElement, subscriptions);
+
+    return new ChildGroup([domElement], subscriptions);
 }
 
-function handleNodeArray(node: VNode[], parent: ChildGroup) {
+function handleNodeArray(node: VNode[], parentDom: HTMLElement) {
     const domElements: Node[] = [];
     const subscriptions: Subscription[] = [];
     node.forEach(n => {
-        const child = createDomElement(n, parent);
+        const child = createDomElement(n, parentDom);
         domElements.push(...child.domElement);
         subscriptions.push(...child.subscriptions);
     })
@@ -44,26 +46,28 @@ function handleNodeArray(node: VNode[], parent: ChildGroup) {
 }
 
 function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>,
-                            parent: ChildGroup) {
+                            parentDom: HTMLElement,
+                            parentSubscriptions: Subscription[]) {
     const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[]);
     const subscription = child.subscribe(newChild => {
-        const newGroup = createDomElement(newChild, parent);
-        currentGroup.swap(newGroup, parent);
-        parent.domElement[0].insertBefore(currentGroup.createElement(), currentGroup.nextSibling?.getFirstDomElement());
+        const newGroup = createDomElement(newChild, parentDom, []);
+        currentGroup.swap(newGroup, parentDom);
     });
-    parent.subscriptions.push(subscription)
+    parentSubscriptions.push(subscription)
     return currentGroup;
 }
 
-function handleNodeChildren(children: Child[], parent: ChildGroup): ChildGroup {
+function handleNodeChildren(children: Child[],
+                            parent: HTMLElement,
+                            subscriptions: Subscription[] = []): ChildGroup {
     if (!children) return;
     // A dynamic group needs a reference to the next sibling in the dom tree. The dynamic group uses this reference to
     // append it self to the dom at the correct location (with the parent.insertBefore).
     let prevDynamicSibling: ChildGroup;
     let domElements = [];
     children.forEach( (child) => {
-        let currentGroup = createDomElement(child,  parent);
-        parent.subscriptions.push(...currentGroup.subscriptions)
+        let currentGroup = createDomElement(child,  parent, subscriptions);
+        subscriptions.push(...currentGroup.subscriptions)
 
         // The current group stores a reference to the last dynamic group if it was dynamic.
         if(prevDynamicSibling) {
@@ -73,14 +77,13 @@ function handleNodeChildren(children: Child[], parent: ChildGroup): ChildGroup {
         const isDynamicOrEmpty = isSubscribable(child) || currentGroup.domElement.length == 0;
         prevDynamicSibling = isDynamicOrEmpty ? currentGroup : null;
         domElements.push(...currentGroup.domElement);
-        return (parent.domElement[0] as HTMLElement).append(...currentGroup.domElement);
+        return parent.append(...currentGroup.domElement);
     })
-    return new ChildGroup(domElements, parent.subscriptions);
+    return new ChildGroup(domElements, subscriptions);
 }
 
-function handleAttributes(attr: HTMLAttributes<HTMLElement>, group: ChildGroup) {
+function handleAttributes(attr: HTMLAttributes<HTMLElement>, domElement: HTMLElement, subscriptions: Subscription[]) {
     if(!attr) return;
-    const domElement: HTMLElement = group.domElement[0] as HTMLElement;
     if (attr.class) {
         attr.className = attr.class;
         delete attr.class
@@ -91,7 +94,7 @@ function handleAttributes(attr: HTMLAttributes<HTMLElement>, group: ChildGroup) 
             for (const key in attr.style) {
                 const styleVal = attr.style[key];
                 if (isSubscribable(styleVal)) {
-                    group.subscriptions.push(styleVal.subscribe(newStyleVal => domElement.style[key] = newStyleVal))
+                    subscriptions.push(styleVal.subscribe(newStyleVal => domElement.style[key] = newStyleVal))
                 } else {
                     domElement.style[key] = styleVal;
                 }
@@ -99,7 +102,7 @@ function handleAttributes(attr: HTMLAttributes<HTMLElement>, group: ChildGroup) 
         } else {
             const nodeAttr = attr[key];
             if (isSubscribable(nodeAttr)) {
-                group.subscriptions.push(nodeAttr.subscribe(newVal => domElement[key] = newVal))
+                subscriptions.push(nodeAttr.subscribe(newVal => domElement[key] = newVal))
             } else {
                 domElement[key] = nodeAttr
             }

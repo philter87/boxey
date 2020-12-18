@@ -65,7 +65,7 @@ describe('fragment',() => {
         assert.equal(num$.getSubscriberCount(), 0);
     })
 
-    it('fragment with stores', () => {
+    xit('fragment with stores', () => {
         const num$ = store(0)
         const el = div(fragment(1, num$), 3)
 

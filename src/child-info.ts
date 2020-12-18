@@ -20,14 +20,16 @@ export class ChildGroup {
         return this.nextSibling ? this.nextSibling.getFirstDomElement() : null;
     }
 
-    swap(newGroup: ChildGroup, parent: ChildGroup){
+    swap(newGroup: ChildGroup, parent: HTMLElement){
         // First we clean up previous group
         this.subscriptions.forEach(s => s.unsubscribe());
-        this.domElement.forEach(n => parent.domElement[0].removeChild(n));
+        this.domElement.forEach(n => parent.removeChild(n));
 
         // Then we swap
         this.domElement = newGroup.domElement;
         this.subscriptions = newGroup.subscriptions;
+
+        parent.insertBefore(this.createElement(), this.nextSibling?.getFirstDomElement());
     }
 
 }
