@@ -5,8 +5,8 @@ export class ChildGroup {
     public drawAnchor?: ChildGroup;
     public childWithMissingDrawAnchor?: ChildGroup;
 
-    constructor(public domElement: Node[] = EMPTY_ELEMENTS,
-                public subscriptions: Subscription[] = EMPTY_SUBSCRIPTION,
+    constructor(public domElement: Node[],
+                public subscriptions: Subscription[],
                 isThisMissingDrawAnchor: boolean = false) {
         if(isThisMissingDrawAnchor) {
             this.childWithMissingDrawAnchor = this;
