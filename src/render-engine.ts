@@ -37,7 +37,7 @@ export const createDomElement = (node?: Child, parentDom?: HTMLElement, parentSu
 function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>,
                             parentDom: HTMLElement,
                             parentSubscriptions: Subscription[]) {
-    const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[]);
+    const currentGroup = new ChildGroup(EMPTY_ELEMENTS,[], true);
     const subscription = child.subscribe(newChild => {
         const newGroup = createDomElement(newChild, parentDom, []);
         currentGroup.swap(newGroup, parentDom);
@@ -50,25 +50,24 @@ function handleNodeChildren(children: Child[],
                             parent: HTMLElement,
                             subscriptions: Subscription[] = []): ChildGroup {
     if (!children) return;
-    // A dynamic group needs a reference to the next sibling in the dom tree. The dynamic group uses this reference to
-    // append it self to the dom at the correct location (with the parent.insertBefore).
-    let prevDynamicSibling: ChildGroup;
+    let prevGroup: ChildGroup;
     let domElements = [];
-    children.forEach( (child) => {
-        let currentGroup = createDomElement(child,  parent, subscriptions);
+    for (let i = 0; i < children.length; i++){
+        let currentGroup = createDomElement(children[i],  parent, subscriptions);
         subscriptions.push(...currentGroup.subscriptions)
 
-        // The current group stores a reference to the last dynamic group if it was dynamic.
-        if(prevDynamicSibling) {
-            prevDynamicSibling.nextSibling = currentGroup;
+        // A group might have a child that is missing a drawAnchor
+        const childWithMissingDrawAnchor = prevGroup?.getChildMissingDrawAnchor();
+        if(childWithMissingDrawAnchor) {
+            childWithMissingDrawAnchor.drawAnchor = currentGroup;
         }
-        // prevDynamicGroup is only assigned when a child is dynamic or empty.
-        const isDynamicOrEmpty = isSubscribable(child) || currentGroup.domElement.length == 0;
-        prevDynamicSibling = isDynamicOrEmpty ? currentGroup : null;
+        prevGroup = currentGroup;
         domElements.push(...currentGroup.domElement);
-        return parent.append(...currentGroup.domElement);
-    })
-    return new ChildGroup(domElements, subscriptions);
+        parent.append(...currentGroup.domElement);
+    }
+    const group = new ChildGroup(domElements, subscriptions);
+    group.childWithMissingDrawAnchor = prevGroup?.getChildMissingDrawAnchor();
+    return group;
 }
 
 function handleAttributes(attr: HTMLAttributes<HTMLElement>, domElement: HTMLElement, subscriptions: Subscription[]) {

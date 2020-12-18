@@ -64,15 +64,26 @@ describe('fragment',() => {
         show$.set(false);
         assert.equal(num$.getSubscriberCount(), 0);
     })
+    it('fragment with multiple stores', () => {
+        const num0$ = store(-1)
+        const num1$ = store(-1)
+        const num2$ = store(-1)
+        const el = div(fragment(num0$, num1$, num2$), 3)
 
-    xit('fragment with stores', () => {
+        const target = render(el);
+        num0$.set(0);
+        num1$.set(1);
+        num2$.set(2);
+
+        assert.equal(target.innerHTML, "0123")
+    })
+    it('double nested fragment with stores', () => {
         const num$ = store(0)
-        const el = div(fragment(1, num$), 3)
+        const el = div(fragment(fragment(1, num$),3), 4);
 
         const target = render(el);
         num$.set(2);
 
-        assert.equal(target.innerHTML, "123")
+        assert.equal(target.innerHTML, "1234")
     })
-
 })

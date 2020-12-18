@@ -2,10 +2,15 @@ import {Subscription} from "./store";
 export const EMPTY_SUBSCRIPTION: Subscription[] = []
 export const EMPTY_ELEMENTS: Node[] = [];
 export class ChildGroup {
-    public nextSibling?: ChildGroup;
+    public drawAnchor?: ChildGroup;
+    public childWithMissingDrawAnchor?: ChildGroup;
 
     constructor(public domElement: Node[] = EMPTY_ELEMENTS,
-                public subscriptions: Subscription[] = EMPTY_SUBSCRIPTION) {
+                public subscriptions: Subscription[] = EMPTY_SUBSCRIPTION,
+                isThisMissingDrawAnchor: boolean = false) {
+        if(isThisMissingDrawAnchor) {
+            this.childWithMissingDrawAnchor = this;
+        }
     }
 
     createElement(): Node {
@@ -18,7 +23,7 @@ export class ChildGroup {
         if (this.domElement.length > 0) {
             return this.domElement[0];
         }
-        return this.nextSibling ? this.nextSibling.getFirstDomElement() : null;
+        return this.drawAnchor ? this.drawAnchor.getFirstDomElement() : null;
     }
 
     swap(newGroup: ChildGroup, parent: HTMLElement){
@@ -30,7 +35,15 @@ export class ChildGroup {
         this.domElement = newGroup.domElement;
         this.subscriptions = newGroup.subscriptions;
 
-        parent.insertBefore(this.createElement(), this.nextSibling?.getFirstDomElement());
+        parent.insertBefore(this.createElement(), this.drawAnchor?.getFirstDomElement());
+    }
+
+    getChildMissingDrawAnchor() {
+        if(this.childWithMissingDrawAnchor) {
+            return this.childWithMissingDrawAnchor;
+        } else {
+            return this.domElement.length == 0 ? this : null;
+        }
     }
 
 }
