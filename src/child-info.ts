@@ -2,9 +2,10 @@ import {Subscription} from "./store";
 export const EMPTY_SUBSCRIPTION: Subscription[] = []
 export const EMPTY_ELEMENTS: Node[] = [];
 export class ChildGroup {
+    public nextSibling?: ChildGroup;
+
     constructor(public domElement: Node[] = EMPTY_ELEMENTS,
-                public subscriptions: Subscription[] = EMPTY_SUBSCRIPTION,
-                public nextSibling?: ChildGroup) {
+                public subscriptions: Subscription[] = EMPTY_SUBSCRIPTION) {
     }
 
     createElement(): Node {

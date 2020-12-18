@@ -17,7 +17,7 @@ export const createDomElement = (node?: Child, parentDom?: HTMLElement, parentSu
     } else if (isString(node) || isNumber(node)) {
         return new ChildGroup([document.createTextNode(node.toString())]);
     } else if (Array.isArray(node)) {
-        return handleNodeArray(node, parentDom);
+        return handleNodeChildren(node, parentDom);
     } else if(isSubscribable(node)) {
         return createDynamicGroup(node, parentDom, parentSubscriptions)
     }
@@ -32,17 +32,6 @@ export const createDomElement = (node?: Child, parentDom?: HTMLElement, parentSu
     handleAttributes(node.attr, domElement, subscriptions);
 
     return new ChildGroup([domElement], subscriptions);
-}
-
-function handleNodeArray(node: VNode[], parentDom: HTMLElement) {
-    const domElements: Node[] = [];
-    const subscriptions: Subscription[] = [];
-    node.forEach(n => {
-        const child = createDomElement(n, parentDom);
-        domElements.push(...child.domElement);
-        subscriptions.push(...child.subscriptions);
-    })
-    return new ChildGroup(domElements, subscriptions);
 }
 
 function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>,
