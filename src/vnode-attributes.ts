@@ -12,6 +12,7 @@ type CssStyle = Partial<Record<keyof CSSStyleDeclaration, Subscribable<string> |
 export interface HTMLAttributes<T> extends Partial<GlobalEventHandlers>{
     // I have added this
     class?: string | Subscribable<string>;
+    key?: string;
 
     // Standard HTML Attributes
     accessKey?: string | Subscribable<string>;
