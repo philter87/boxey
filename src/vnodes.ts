@@ -1,4 +1,4 @@
-import {Subscribable} from "./store";
+import {Subscribable} from "./box";
 import {isCustomTagFunction, isElement, isNumber, isString, isSubscribable} from "./utils";
 import {AnchorHTMLAttributes, HTMLAttributes, InputHTMLAttributes} from "./vnode-attributes";
 

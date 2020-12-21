@@ -14,18 +14,18 @@ export const multiSubscription = (subscribtions: Subscription[]): Subscription =
 }
 
 export interface Get {
-    <T> (drop: Store<T>) : T
+    <T> (drop: Box<T>) : T
 }
 
 export interface Subscribable<T> {
     subscribe(subscriber: Subscriber<T>): Subscription;
 }
 
-export abstract class Store<T> implements Subscribable<T>{
+export abstract class Box<T> implements Subscribable<T>{
     abstract subscribe(subscriber: Subscriber<T>): Subscription;
 
     map<R>(mapperFunction: (value: T) => R) {
-        return new ReadStore<R>(subscriber => {
+        return new ReadBox<R>(subscriber => {
             return this.subscribe( val => subscriber(mapperFunction(val)))
         })
     }
@@ -42,7 +42,7 @@ export abstract class Store<T> implements Subscribable<T>{
 }
 
 
-class ReadStore<T> extends Store<T> {
+class ReadBox<T> extends Box<T> {
     private _subscribe: (subscriber: Subscriber<T>) => Subscription;
 
     constructor( subscribe: (subscriber: Subscriber<T>) => Subscription) {
@@ -55,8 +55,8 @@ class ReadStore<T> extends Store<T> {
     }
 }
 
-export const join = <R>(join: (get: Get) => R): Store<R> => {
-    return new ReadStore<R>(observer => {
+export const join = <R>(join: (get: Get) => R): Box<R> => {
+    return new ReadBox<R>(observer => {
         let areAllSubscribersInitialized = false;
         const values = [];
         const subscriptions: Subscription[] = [];
@@ -80,11 +80,11 @@ export const join = <R>(join: (get: Get) => R): Store<R> => {
         return multiSubscription(subscriptions);
     })
 }
-export const store = <T>(defaultValue: T): WriteStore<T> => {
-    return new WriteStore(defaultValue);
+export const box = <T>(defaultValue: T): WriteBox<T> => {
+    return new WriteBox(defaultValue);
 }
 
-export class WriteStore<T> extends Store<T> {
+export class WriteBox<T> extends Box<T> {
     private value: T;
     private subscribers: Subscriber<T>[];
 

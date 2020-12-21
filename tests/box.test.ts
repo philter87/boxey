@@ -1,17 +1,17 @@
 import {assert } from "chai";
 import {describe} from "mocha";
-import {join, store} from "../src/store";
+import {join, box} from "../src/box";
 
-describe('Store tests', () => {
+describe('Box tests', () => {
     it('Initial value', () => {
         const expected = 'Hello';
-        const msg = store(expected);
+        const msg = box(expected);
 
         msg.subscribe(val => assert.equal(val, expected));
     })
     it('Set', () => {
         const expected = 'ValueIsSet';
-        const msg = store('');
+        const msg = box('');
 
         msg.set(expected);
 
@@ -19,7 +19,7 @@ describe('Store tests', () => {
     })
     it('Update', () => {
         const expected = 1 + 10;
-        const num = store(1);
+        const num = box(1);
 
         num.update( val => val+10);
 
@@ -27,7 +27,7 @@ describe('Store tests', () => {
     })
     it('Set multiple times', () => {
         const values = [];
-        const num = store(0);
+        const num = box(0);
         num.subscribe( val => {
             values.push(val);
         });
@@ -39,7 +39,7 @@ describe('Store tests', () => {
     })
     it('Unsubscribe', () => {
         const values = [];
-        const num = store(0);
+        const num = box(0);
         const subscription = num.subscribe( val => values.push(val));
         num.set(1);
 
@@ -51,7 +51,7 @@ describe('Store tests', () => {
     })
     it('subscribe, unsubscribe and subscribe', () => {
         let value;
-        const num = store(5);
+        const num = box(5);
         let subscription = num.subscribe( val => value = val);
         num.set(1);
 
@@ -71,13 +71,13 @@ describe('Store tests', () => {
 describe('operators', () => {
     it('map', () => {
         const expected = "count: 0";
-        const num = store(0);
-        const readStore = num.map(num => "count: " + num);
-        readStore.subscribe( val => assert.equal(val, expected));
+        const num = box(0);
+        const readBox = num.map(num => "count: " + num);
+        readBox.subscribe( val => assert.equal(val, expected));
     })
     it('join', () => {
-        const source1 = store(5);
-        const source2 = store(5);
+        const source1 = box(5);
+        const source2 = box(5);
         const joined = join(get => get(source1) + get(source2));
         let actualValue;
 
@@ -91,7 +91,7 @@ describe('operators', () => {
     })
     it('pick', () => {
         const name = 'Phil';
-        const source1 = store({name, age: '33'});
+        const source1 = box({name, age: '33'});
 
         let actualValue;
         source1.pick("name").subscribe( val => actualValue = val);
@@ -99,13 +99,13 @@ describe('operators', () => {
     })
     it('snapshot', () => {
         const name = 'Phil';
-        const source1 = store(name);
+        const source1 = box(name);
         assert.equal(name, source1.snapshot());
     })
     it('join operator - unsubscribe', () => {
         const expected = 2;
-        const source1 = store(1);
-        const source2 = store(1);
+        const source1 = box(1);
+        const source2 = box(1);
         const joined = join(get => get(source1) + get(source2));
         let actualValue;
 

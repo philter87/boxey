@@ -1,4 +1,4 @@
-import {Subscribable} from "./store";
+import {Subscribable} from "./box";
 
 type Booleanish = boolean | 'true' | 'false';
 type CssStyle = Partial<Record<keyof CSSStyleDeclaration, Subscribable<string> | string>>

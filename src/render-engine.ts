@@ -1,5 +1,5 @@
 import {Child, VElement, VNode} from "./vnodes";
-import {Subscribable, Subscription} from "./store";
+import {Subscribable, Subscription} from "./box";
 import {isNumber, isString, isSubscribable} from "./utils";
 import {ChildGroup, EMPTY_ELEMENTS, EMPTY_SUBSCRIPTION} from "./child-info";
 import {HTMLAttributes} from "./vnode-attributes";

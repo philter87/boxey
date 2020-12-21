@@ -1,5 +1,5 @@
 export * from "./child-info"
 export * from "./render-engine"
 export * from "./router"
-export * from "./store"
+export * from "./box"
 export * from "./vnodes"

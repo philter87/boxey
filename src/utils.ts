@@ -1,4 +1,4 @@
-import {Subscribable} from "./store";
+import {Subscribable} from "./box";
 import {CustomTagFunction, VElement, VNode} from "./vnodes";
 
 export const isString = (obj: any): obj is string => {

@@ -1,4 +1,4 @@
-import {store, Subscribable, WriteStore} from "./store";
+import {box, Subscribable, WriteBox} from "./box";
 import {Child, n, VNode} from "./vnodes";
 import {UrlWithStringQuery} from "url";
 import {isBrowser} from "./utils";
@@ -60,12 +60,12 @@ export const parseUrl = (routes: Route[], path: string): Partial<Url> => {
 }
 
 export class Router {
-    private _url: WriteStore<Url>;
+    private _url: WriteBox<Url>;
     private _routes: Route[];
 
     constructor(location?: UrlWithStringQuery | globalThis.Location) {
         this._routes = [];
-        this._url = store(this.createUrlFromLocation(location || window.location));
+        this._url = box(this.createUrlFromLocation(location || window.location));
         if(isBrowser()) {
             window.onpopstate = () => {
                 this._url.set(this.createUrlFromLocation(window.location))

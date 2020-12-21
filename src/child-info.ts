@@ -1,4 +1,4 @@
-import {Subscription} from "./store";
+import {Subscription} from "./box";
 export const EMPTY_SUBSCRIPTION: Subscription[] = []
 export const EMPTY_ELEMENTS: Node[] = [];
 export class ChildGroup {

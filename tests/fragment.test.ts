@@ -7,7 +7,7 @@ import {describe} from "mocha";
 import {assert} from "chai";
 import {initDomMock, render} from "./dom-mock";
 import {div, VElement, VNode} from "../src/vnodes";
-import {store} from "../src/store";
+import {box} from "../src/box";
 import {dotRender} from "../src/render-engine";
 
 // mocking document with jsdom
@@ -32,7 +32,7 @@ describe('fragment',() => {
         assert.equal(target.innerHTML, "123");
     })
     it('simple with store', () => {
-        const num$ = store(2);
+        const num$ = box(2);
         const frag = fragment(1, num$, "3");
 
         const target = render(div(frag));
@@ -44,7 +44,7 @@ describe('fragment',() => {
     it('fragment in store', () => {
         const frag = fragment("1","2","3", div("4"), [1, 2]);
         const fragInnerHtml = "123<div>4</div>12";
-        const el$ = store<VNode | VNode[]>(frag);
+        const el$ = box<VNode | VNode[]>(frag);
 
         const target = render(div(el$));
         assert.equal(target.innerHTML, fragInnerHtml);
@@ -54,8 +54,8 @@ describe('fragment',() => {
         assert.equal(target.innerHTML, fragInnerHtml);
     })
     it('store in fragment in store', () => {
-        const num$ = store(0)
-        const show$ = store(true);
+        const num$ = box(0)
+        const show$ = box(true);
         const el = div(show$.map( s => s ? fragment(1, num$) : null));
 
         const target = render(el);
@@ -65,9 +65,9 @@ describe('fragment',() => {
         assert.equal(num$.getSubscriberCount(), 0);
     })
     it('fragment with multiple stores', () => {
-        const num0$ = store(-1)
-        const num1$ = store(-1)
-        const num2$ = store(-1)
+        const num0$ = box(-1)
+        const num1$ = box(-1)
+        const num2$ = box(-1)
         const el = div(fragment(num0$, num1$, num2$), 3)
 
         const target = render(el);
@@ -78,7 +78,7 @@ describe('fragment',() => {
         assert.equal(target.innerHTML, "0123")
     })
     it('double nested fragment with stores', () => {
-        const num$ = store(0)
+        const num$ = box(0)
         const el = div(fragment(fragment(1, num$),3), 4);
 
         const target = render(el);

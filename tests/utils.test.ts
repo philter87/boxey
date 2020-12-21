@@ -1,9 +1,9 @@
 import {describe} from "mocha";
 import { assert } from "chai";
 import {isCustomTagFunction, isNumber, isString, isSubscribable} from "../src/utils";
-import {store} from "../src/store";
+import {box} from "../src/box";
 
-const ARRAY: any[] = ['aString', ['an array'], store(2)];
+const ARRAY: any[] = ['aString', ['an array'], box(2)];
 
 describe('utils', () => {
     it('isString', () => {
@@ -20,7 +20,7 @@ describe('utils', () => {
         }
     })
     it('isSubscribable', () => {
-        const questions = [store(2), store(null), [], 1, "2", null, {name: 'Phil'}];
+        const questions = [box(2), box(null), [], 1, "2", null, {name: 'Phil'}];
         const answers = [true, true, false, false, false, false, false];
         for (let i = 0; i < questions.length; i++){
             assert.equal(isSubscribable(questions[i]), answers[i], "error on index: " + i)
