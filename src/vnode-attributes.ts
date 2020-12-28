@@ -14,6 +14,9 @@ export interface HTMLAttributes<T> extends Partial<GlobalEventHandlers>{
     class?: string | Subscribable<string>;
     key?: string;
 
+    //Lifecycle
+    onRendered?: (element: Node) => any;
+
     // Standard HTML Attributes
     accessKey?: string | Subscribable<string>;
     className?: string | Subscribable<string>;

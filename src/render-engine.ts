@@ -1,13 +1,25 @@
 import {Child, VElement, VNode} from "./vnodes";
 import {Subscribable, Subscription} from "./box";
-import {isNumber, isString, isSubscribable} from "./utils";
+import {isElement, isNumber, isString, isSubscribable} from "./utils";
 import {ChildGroup, EMPTY_ELEMENTS, EMPTY_SUBSCRIPTION} from "./child-info";
 import {HTMLAttributes} from "./vnode-attributes";
 import {FRAGMENT} from "./constants";
 
+function callOnRendered(c: VElement | string | number | VNode[] | Subscribable<VNode | VNode[] | null>) {
+    if (isElement(c)) {
+        if (c?.attr?.onRendered) {
+            c.attr.onRendered(null);
+        }
+        if (c.children) {
+            c.children.forEach( c => callOnRendered(c));
+        }
+    }
+}
+
 export const dotRender = (node: VElement, target: HTMLElement) => {
     const childInfo = createDomElement(node, target);
     target.append(...childInfo.domElement);
+    callOnRendered(node);
     return target;
 }
 
@@ -41,6 +53,7 @@ function createDynamicGroup(child: Subscribable<VNode | VNode[] | null>,
     const subscription = child.subscribe(newChild => {
         const newGroup = createDomElement(newChild, parentDom, []);
         currentGroup.swap(newGroup, parentDom);
+        callOnRendered(newChild)
     });
     parentSubscriptions.push(subscription)
     return currentGroup;

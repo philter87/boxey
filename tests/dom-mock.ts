@@ -12,12 +12,14 @@ declare global {
     }
 }
 
+export const ROOT_ID = "rootId"
 export const initDomMock = () => {
-    const { window } = new JSDOM('<!doctype html><html><body></body></html>');
+    const { window } = new JSDOM('<!doctype html><html><body><div id="' + ROOT_ID +'"></div></body></html>');
     global.document = window.document;
 }
 
-export const render = (node: VElement) => {
-    const target = dotRender(node, document.createElement('div'))
+export const render = (node: VElement, root?: HTMLElement) => {
+    let target = root || document.createElement("div");
+    dotRender(node, target);
     return target.firstChild as HTMLElement;
 }
